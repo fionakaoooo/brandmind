@@ -11,8 +11,10 @@ import json
 from openai import OpenAI
 from state import BrandMindState, ARCHETYPES
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
+client = OpenAI(
+    api_key=os.environ.get("GROQ_API_KEY"),
+    base_url="https://api.groq.com/openai/v1"
+)
 
 # ── Tool: archetype_classifier ──────────────────────────────────────────────
 
@@ -43,7 +45,7 @@ Respond ONLY with valid JSON in this exact format:
 }}"""
 
     resp = client.chat.completions.create(
-        model="gpt-4o",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         response_format={"type": "json_object"},
@@ -97,7 +99,7 @@ Respond ONLY with valid JSON:
 If no constraints are found, return {{"constraints": []}}."""
 
     resp = client.chat.completions.create(
-        model="gpt-4o",
+        model="llama-3.3-70b-versatile",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
         response_format={"type": "json_object"},
