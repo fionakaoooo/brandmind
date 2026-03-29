@@ -1,0 +1,39 @@
+from typing import TypedDict, Optional
+
+
+class BrandMindState(TypedDict):
+    # --- input ---
+    brand_brief: str
+    clip_features: Optional[list]       # CLIP embedding from uploaded image (optional)
+
+    # --- planner output ---
+    archetype: Optional[str]            # one of the 10 brand archetypes
+    archetype_rationale: Optional[str]  # why this archetype fits the brief
+    design_constraints: Optional[list]  # extracted constraints from brief
+
+    # --- generator output ---
+    draft_brand_kit: Optional[dict]     # fonts, colors, tone assembled by generator
+
+    # --- qc output ---
+    qc_feedback: Optional[str]          # revision instructions if kit fails QC
+    qc_scores: Optional[dict]           # wcag ratio, coherence score, etc.
+
+    # --- pipeline control ---
+    iteration_count: int                # current revision loop count (max 3)
+    status: Optional[str]               # "planning" | "generating" | "reviewing" | "approved" | "failed"
+    revision_history: Optional[list]    # log of each draft + QC result
+    approved_brand_kit: Optional[dict]  # final output sent to frontend
+
+
+ARCHETYPES = [
+    "Luxury",
+    "Tech",
+    "Playful",
+    "Corporate",
+    "Minimal",
+    "Bold",
+    "Organic",
+    "Artisan",
+    "Heritage",
+    "Youthful",
+]
