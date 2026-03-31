@@ -11,8 +11,12 @@ class BrandMindState(TypedDict):
     archetype_rationale: Optional[str]  # why this archetype fits the brief
     design_constraints: Optional[list]  # extracted constraints from brief
 
+     # --- generator internal ---
+    design_spec: Optional[dict]         # structured design intent
+    generator_trace: Optional[dict]     # retrieved candidates / reasoning trace
+
     # --- generator output ---
-    draft_brand_kit: Optional[dict]     # fonts, colors, tone assembled by generator
+    draft_brand_kit: Optional[dict]
 
     # --- qc output ---
     qc_feedback: Optional[str]          # revision instructions if kit fails QC
