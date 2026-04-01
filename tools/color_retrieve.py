@@ -18,8 +18,28 @@ EMOSET_SUMMARY_PATH = os.environ.get(
     "data/processed/emoset_emotion_summary.csv"
 )
 
-
 HEX_RE = re.compile(r"^#(?:[0-9a-fA-F]{6})$")
+
+
+# 品牌情绪 -> EmoSet原生8类情绪 的桥接映射
+EMOSET_BRAND_EMOTION_MAP = {
+    "calm": ["contentment"],
+    "soft": ["contentment"],
+    "elegant": ["awe", "contentment"],
+    "sophisticated": ["awe"],
+    "modern": ["awe"],
+    "playful": ["amusement", "excitement"],
+    "energetic": ["excitement"],
+    "bold": ["excitement", "anger"],
+    "warm": ["contentment", "amusement"],
+    "trustworthy": ["contentment"],
+    "refined": ["awe", "contentment"],
+    "luxurious": ["awe"],
+    "premium": ["awe"],
+    "friendly": ["amusement", "contentment"],
+    "joyful": ["amusement", "excitement"],
+    "grounded": ["contentment"],
+}
 
 
 def _normalize_col(name: str) -> str:
@@ -131,25 +151,43 @@ def _palette_stats(hex_codes: List[str]) -> Dict[str, float]:
         "avg_hue": avg_h,
         "avg_saturation": avg_s,
         "avg_brightness": avg_v,
-        "avg_colorfulness": avg_s,
+        "avg_colorfulness": avg_s,  # saturation 作为 colorfulness proxy
     }
 
 
 def _build_emoset_profile(emotions: List[str]) -> Dict[str, float]:
+    """
+    先直接匹配 emotion；
+    如果匹配不到，再走 品牌情绪 -> EmoSet 原生情绪 映射。
+    """
     df = load_emoset_summary()
     if df.empty:
         return {"brightness_target": 0.55, "colorfulness_target": 0.55}
 
-    emotions_norm = {_normalize_col(e) for e in emotions}
-    hit = df[df["emotion"].astype(str).map(_normalize_col).isin(emotions_norm)]
+    emotions_norm = [_normalize_col(e) for e in emotions]
 
-    if hit.empty:
-        return {"brightness_target": 0.55, "colorfulness_target": 0.55}
+    # 1) 直接匹配
+    direct_hit = df[df["emotion"].astype(str).map(_normalize_col).isin(set(emotions_norm))]
+    if not direct_hit.empty:
+        return {
+            "brightness_target": float(direct_hit["brightness_mean"].mean()),
+            "colorfulness_target": float(direct_hit["colorfulness_mean"].mean()),
+        }
 
-    return {
-        "brightness_target": float(hit["brightness_mean"].mean()),
-        "colorfulness_target": float(hit["colorfulness_mean"].mean()),
-    }
+    # 2) 映射到 EmoSet 原生情绪
+    mapped = []
+    for emo in emotions_norm:
+        mapped.extend(EMOSET_BRAND_EMOTION_MAP.get(emo, []))
+
+    mapped = [_normalize_col(x) for x in mapped]
+    mapped_hit = df[df["emotion"].astype(str).map(_normalize_col).isin(set(mapped))]
+    if not mapped_hit.empty:
+        return {
+            "brightness_target": float(mapped_hit["brightness_mean"].mean()),
+            "colorfulness_target": float(mapped_hit["colorfulness_mean"].mean()),
+        }
+
+    return {"brightness_target": 0.55, "colorfulness_target": 0.55}
 
 
 def _distance(a: float, b: float) -> float:
@@ -180,35 +218,40 @@ def _constraint_penalty(
     for h in hex_codes:
         hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
 
+        # no red
         if "no red" in constraint_text:
             if hue < 25 or hue > 335:
                 penalty += 1.2
 
+        # avoid harsh colors
         if "avoid harsh colors" in constraint_text:
-            if sat > 0.72:
-                penalty += 0.9
-            if val > 0.90 and sat > 0.55:
-                penalty += 0.6
-            if hue < 20 or hue > 340:
+            if sat > 0.60:
+                penalty += 1.2
+            if val > 0.85 and sat > 0.45:
+                penalty += 0.8
+            if hue < 25 or hue > 335:
+                penalty += 1.0
+
+        # soft / calm
+        if "soft" in constraint_text or "calm" in constraint_text:
+            if sat > 0.60:
                 penalty += 0.8
 
-        if "soft" in constraint_text or "calm" in constraint_text:
-            if sat > 0.65:
-                penalty += 0.7
-
+        # luxury / premium
         if "luxury" in constraint_text or "premium" in constraint_text:
-            if sat > 0.70:
-                penalty += 0.5
+            if sat > 0.65:
+                penalty += 0.6
 
+    # palette-level penalties
     if "avoid harsh colors" in constraint_text:
-        if stats["avg_colorfulness"] > 0.62:
-            penalty += 1.5
-        if stats["avg_brightness"] > 0.88 and stats["avg_colorfulness"] > 0.55:
-            penalty += 0.8
+        if stats["avg_colorfulness"] > 0.55:
+            penalty += 2.0
+        if stats["avg_brightness"] > 0.82 and stats["avg_colorfulness"] > 0.45:
+            penalty += 1.0
 
     if "soft" in constraint_text or "calm" in constraint_text:
-        if stats["avg_colorfulness"] > 0.55:
-            penalty += 1.0
+        if stats["avg_colorfulness"] > 0.50:
+            penalty += 1.2
 
     return penalty
 
@@ -220,6 +263,10 @@ def color_retrieve(
     constraints: List[str] | None = None,
     top_k: int = 5,
 ) -> Dict[str, Any]:
+    """
+    从 branding palette dataset 检索候选 palette，
+    再结合 EmoSet visual profile 与 constraint penalty 进行重排。
+    """
     style_keywords = style_keywords or []
     constraints = constraints or []
 
@@ -251,11 +298,24 @@ def color_retrieve(
 
         brightness_gap = _distance(stats["avg_brightness"], emoset_profile["brightness_target"])
         colorfulness_gap = _distance(stats["avg_colorfulness"], emoset_profile["colorfulness_target"])
-        emoset_alignment_score = max(0.0, 2.0 - (brightness_gap + colorfulness_gap) * 2.5)
 
-        penalty = _constraint_penalty(hex_codes, stats, constraints)
+        emoset_alignment_score = max(
+            0.0,
+            2.0 - (brightness_gap + colorfulness_gap) * 2.5
+        )
 
-        total_score = base_score + industry_score + emoset_alignment_score - (penalty * 1.25)
+        penalty = _constraint_penalty(
+            hex_codes=hex_codes,
+            stats=stats,
+            constraints=constraints,
+        )
+
+        total_score = base_score + industry_score + emoset_alignment_score - (penalty * 2.0)
+
+        # 对 harsh palette 做更强约束
+        constraint_text = " ".join(constraints).lower()
+        if "avoid harsh colors" in constraint_text and penalty >= 2.5:
+            total_score -= 4.0
 
         scored_rows.append({
             "palette_name": row.get("palette_name", row.get("name", f"palette_{len(scored_rows)+1}")),
