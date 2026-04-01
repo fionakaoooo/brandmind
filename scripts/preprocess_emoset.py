@@ -1,36 +1,33 @@
-# 1. First, execute the extraction command in Colab
-import os
-print("📦 Extracting EmoSet.zip (this might take a minute or two)...")
-os.system("unzip -q EmoSet.zip -d /content/extracted_data")
-print("✅ Extraction complete!")
-
-# 2. Import necessary libraries
 import json
+import os
 import pandas as pd
 from collections import defaultdict
+import time
 
-# 3. Smart search for the actual path of the annotation folder
-def find_annotation_folder(start_path):
-    for root, dirs, files in os.walk(start_path):
-        if 'annotation' in dirs:
-            return os.path.join(root, 'annotation')
-    return None
-
-def process_emoset_to_csv():
-    print("🔍 Searching for the annotation data folder...")
-    annotation_folder = find_annotation_folder("/content/extracted_data")
+def process_emoset_on_mac(dataset_path: str, output_csv: str):
+    """
+    Optimizing EmoSet preprocessing for macOS Desktop environments.
+    """
+    # Converting tilde to full home directory path
+    full_path = os.path.expanduser(dataset_path)
     
-    if not annotation_folder:
-        print("❌ Error: Could not find the 'annotation' folder in the zip file. Please check your EmoSet.zip!")
+    # Locating the required annotation sub-folder
+    annotation_folder = os.path.join(full_path, "annotation")
+    
+    if not os.path.exists(annotation_folder):
+        print(f"Error: Annotation folder not found at {full_path}")
+        print("Suggestion: Verifying if the folder name is 'EmoSet' and containing 'annotation' directory.")
         return
-        
-    print(f"🎯 Found it! Path: {annotation_folder}")
-    print("⏳ Starting to scan ~118,000 JSON files to extract academic features...")
 
-    emotion_stats = defaultdict(lambda: {"brightness_sum": 0.0, "colorfulness_sum": 0.0, "count": 0})
+    print(f"Initializing processing for dataset at: {annotation_folder}")
+    print("Reading approximately 118,000 JSON files (estimated time: 1-2 minutes)...")
+
+    emotion_stats = defaultdict(lambda: {"b_sum": 0.0, "c_sum": 0.0, "count": 0})
     processed_count = 0
+    error_count = 0
+    start_time = time.time()
 
-    # Recursively traverse all JSON files
+    # Iterating through all sub-directories (e.g., amusement, awe, etc.)
     for root, _, files in os.walk(annotation_folder):
         for filename in files:
             if filename.endswith(".json"):
@@ -38,50 +35,65 @@ def process_emoset_to_csv():
                 try:
                     with open(filepath, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                        emotion = data.get("emotion")
-                        brightness = data.get("brightness")
-                        colorfulness = data.get("colorfulness")
+                        # Extracting core academic features
+                        emo = data.get("emotion")
+                        b = data.get("brightness")
+                        c = data.get("colorfulness")
                         
-                        if emotion and brightness is not None and colorfulness is not None:
-                            emotion = emotion.strip().lower()
-                            emotion_stats[emotion]["brightness_sum"] += float(brightness)
-                            emotion_stats[emotion]["colorfulness_sum"] += float(colorfulness)
-                            emotion_stats[emotion]["count"] += 1
+                        if emo and b is not None and c is not None:
+                            emo = str(emo).strip().lower()
+                            emotion_stats[emo]["b_sum"] += float(b)
+                            emotion_stats[emo]["c_sum"] += float(c)
+                            emotion_stats[emo]["count"] += 1
                             
                     processed_count += 1
+                    # Logging progress every 10,000 files
                     if processed_count % 10000 == 0:
-                        print(f"   Processed {processed_count} files...")
+                        elapsed = time.time() - start_time
+                        print(f"Processing {processed_count} files... (Elapsed: {elapsed:.1f}s)")
                 except Exception:
-                    pass
-                    
-    print(f"\n✅ Scan complete! Extracted data from {processed_count} files.")
-    print("⚙️ Generating CSV file...")
+                    error_count += 1
+                    continue
 
-    # Calculate means and generate the dataframe
-    records = []
-    for emo, stats in emotion_stats.items():
+    if processed_count == 0:
+        print("Error: No valid data extracted. Checking if JSON contents follow EmoSet standards.")
+        return
+
+    print(f"\nScanning completed. Success: {processed_count}, Failed: {error_count}")
+    print("Calculating mean values for brightness and colorfulness per emotion...")
+
+    # Aggregating final data
+    final_data = []
+    for emotion_name, stats in emotion_stats.items():
         if stats["count"] > 0:
-            records.append({
-                "emotion": emo,
-                "brightness_mean": round(stats["brightness_sum"] / stats["count"], 4),
-                "colorfulness_mean": round(stats["colorfulness_sum"] / stats["count"], 4)
+            final_data.append({
+                "emotion": emotion_name,
+                "brightness_mean": round(stats["b_sum"] / stats["count"], 4),
+                "colorfulness_mean": round(stats["c_sum"] / stats["count"], 4),
+                "sample_size": stats["count"]
             })
 
-    df = pd.DataFrame(records)
-    df.sort_values(by="emotion", inplace=True)
+    # Converting to DataFrame and sorting alphabetically
+    df = pd.DataFrame(final_data).sort_values(by="emotion")
     
-    # ====== Core path configuration ======
-    # Colab will generate this final file in the left panel
-    output_csv_path = "/content/emoset_emotion_summary.csv"
-    df.to_csv(output_csv_path, index=False, encoding='utf-8')
-    # =====================================
+    # Saving results to the current script directory
+    df.to_csv(output_csv, index=False, encoding='utf-8')
     
-    print(f"🎉 Success! Feature summary file saved to: {output_csv_path}")
-    print("\n📊 Data Preview:")
-    print(df.to_string(index=False))
-    print("\n👉 Now you can click the folder icon on the left side of Colab 📁")
-    print("👉 Find 'emoset_emotion_summary.csv', right-click and select Download!")
+    total_time = time.time() - start_time
+    print(f"Task finished. Total duration: {total_time:.1f} seconds.")
+    print(f"Resulting file saved at: {os.path.abspath(output_csv)}")
+    print("\n--- Data Preview (Top 10 Emotions) ---")
+    print(df.head(10).to_string(index=False))
 
-# 4. Execute the main program
 if __name__ == "__main__":
-    process_emoset_to_csv()
+    # ======================================================
+    # Path Configuration
+    # ======================================================
+    
+    # Using ~/Desktop to automatically target current Mac user's desktop
+    DATASET_LOCATION = "~/Desktop/EmoSet-118k" 
+    
+    # Defining output filename
+    RESULT_NAME = "emoset_emotion_summary.csv"
+    
+    process_emoset_on_mac(DATASET_LOCATION, RESULT_NAME)
