@@ -1,79 +1,65 @@
-"""
-Preprocess EmoSet annotations into a compact emotion summary table.
-
-Expected output:
-data/processed/emoset_emotion_summary.csv
-
-Input CSV should contain columns roughly like:
-- emotion
-- brightness
-- colorfulness
-
-If raw column names differ, the script will try to infer them.
-"""
-
-from __future__ import annotations
-
+import json
 import os
-from pathlib import Path
-
+from collections import defaultdict
 import pandas as pd
 
-
-RAW_PATH = os.environ.get("EMOSET_RAW_CSV", "data/raw/emoset_annotations.csv")
-OUT_PATH = os.environ.get(
-    "EMOSET_SUMMARY_PATH",
-    "data/processed/emoset_emotion_summary.csv"
-)
+RAW_DIR = "data/raw/emo_set"
+OUT_PATH = "data/processed/emoset_emotion_summary.csv"
 
 
-def _normalize(c: str) -> str:
-    return str(c).strip().lower().replace("-", "_").replace(" ", "_")
+def load_json(path):
+    with open(path, "r") as f:
+        return json.load(f)
 
 
-def _find_col(cols, candidates):
-    for cand in candidates:
-        if cand in cols:
-            return cand
-    return None
+def main():
+    files = ["train.json", "val.json", "test.json"]
 
+    brightness_by_emotion = defaultdict(list)
+    colorfulness_by_emotion = defaultdict(list)
 
-def main() -> None:
-    if not os.path.exists(RAW_PATH):
-        raise FileNotFoundError(f"Missing EmoSet raw file: {RAW_PATH}")
+    for fname in files:
+        path = os.path.join(RAW_DIR, fname)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Missing file: {path}")
 
-    df = pd.read_csv(RAW_PATH)
-    df.columns = [_normalize(c) for c in df.columns]
+        data = load_json(path)
 
-    emotion_col = _find_col(df.columns, ["emotion", "emotion_label", "category"])
-    brightness_col = _find_col(df.columns, ["brightness", "brightness_mean"])
-    colorfulness_col = _find_col(df.columns, ["colorfulness", "colorfulness_mean"])
+        for item in data:
+            emotion = item.get("emotion")
+            brightness = item.get("brightness")
+            colorfulness = item.get("colorfulness")
 
-    if not all([emotion_col, brightness_col, colorfulness_col]):
-        raise ValueError(
-            f"Could not infer required columns from {list(df.columns)}"
-        )
+            if emotion is None:
+                continue
 
-    out = (
-        df[[emotion_col, brightness_col, colorfulness_col]]
-        .rename(columns={
-            emotion_col: "emotion",
-            brightness_col: "brightness",
-            colorfulness_col: "colorfulness",
+            if brightness is not None:
+                brightness_by_emotion[emotion].append(float(brightness))
+
+            if colorfulness is not None:
+                colorfulness_by_emotion[emotion].append(float(colorfulness))
+
+    all_emotions = sorted(set(brightness_by_emotion) | set(colorfulness_by_emotion))
+
+    rows = []
+    for emo in all_emotions:
+        bvals = brightness_by_emotion.get(emo, [])
+        cvals = colorfulness_by_emotion.get(emo, [])
+
+        rows.append({
+            "emotion": emo,
+            "brightness_mean": sum(bvals) / len(bvals) if bvals else 0.5,
+            "colorfulness_mean": sum(cvals) / len(cvals) if cvals else 0.5,
+            "count_brightness": len(bvals),
+            "count_colorfulness": len(cvals),
         })
-        .dropna()
-        .groupby("emotion", as_index=False)
-        .agg(
-            brightness_mean=("brightness", "mean"),
-            colorfulness_mean=("colorfulness", "mean"),
-            sample_count=("emotion", "size"),
-        )
-        .sort_values("sample_count", ascending=False)
-    )
 
-    Path(os.path.dirname(OUT_PATH)).mkdir(parents=True, exist_ok=True)
-    out.to_csv(OUT_PATH, index=False)
-    print(f"Saved EmoSet summary to {OUT_PATH}")
+    df = pd.DataFrame(rows)
+    os.makedirs("data/processed", exist_ok=True)
+    df.to_csv(OUT_PATH, index=False)
+
+    print(f"Saved to {OUT_PATH}")
+    print(df.head())
 
 
 if __name__ == "__main__":
