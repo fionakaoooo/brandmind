@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # ======================================================
     
     # Using ~/Desktop to automatically target current Mac user's desktop
-    DATASET_LOCATION = "~/Desktop/EmoSet-118k" 
+    DATASET_LOCATION = "~/Desktop/EmoSet-118K" 
     
     # Defining output filename
     RESULT_NAME = "emoset_emotion_summary.csv"
