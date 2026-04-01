@@ -6,7 +6,7 @@ from functools import lru_cache
 from typing import Any, Dict, List
 
 # 从环境变量获取 API Key
-GOOGLE_FONTS_API_KEY = os.environ.get("GOOGLE_FONTS_API_KEY", "AIzaSyB66IaHukWvj9PQdHBBTow5S1Ou511RdWY")
+GOOGLE_FONTS_API_KEY = os.environ.get("GOOGLE_FONTS_API_KEY", "")
 GOOGLE_FONTS_API_URL = "https://www.googleapis.com/webfonts/v1/webfonts"
 
 # 定义基于品牌原型 (Archetype) 的默认字体类别偏好
