@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-import math
 import os
 import re
 from functools import lru_cache
@@ -51,7 +49,6 @@ def load_palette_df() -> pd.DataFrame:
 @lru_cache(maxsize=1)
 def load_emoset_summary() -> pd.DataFrame:
     if not os.path.exists(EMOSET_SUMMARY_PATH):
-        # soft fallback
         return pd.DataFrame(columns=["emotion", "brightness_mean", "colorfulness_mean"])
 
     df = pd.read_csv(EMOSET_SUMMARY_PATH)
@@ -69,7 +66,6 @@ def _find_hex_columns(df: pd.DataFrame) -> List[str]:
     if len(hex_cols) >= 5:
         return hex_cols[:5]
 
-    # common fallback names
     common = [c for c in ["color1", "color2", "color3", "color4", "color5"] if c in df.columns]
     return common
 
@@ -94,7 +90,7 @@ def _to_binary(val: Any) -> int:
 
 
 def _hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
-    hex_code = hex_code.lstrip("#")
+    hex_code = str(hex_code).strip().lstrip("#")
     return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
 
 
@@ -103,7 +99,6 @@ def _rgb_to_hsv_scaled(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
     mx, mn = max(r, g, b), min(r, g, b)
     diff = mx - mn
 
-    # hue
     if diff == 0:
         h = 0
     elif mx == r:
@@ -132,12 +127,11 @@ def _palette_stats(hex_codes: List[str]) -> Dict[str, float]:
     avg_s = sum(s for _, s, _ in hsvs) / len(hsvs)
     avg_v = sum(v for _, _, v in hsvs) / len(hsvs)
 
-    # simple proxy: colorfulness ~= saturation
     return {
         "avg_hue": avg_h,
         "avg_saturation": avg_s,
         "avg_brightness": avg_v,
-        "avg_colorfulness": avg_s,
+        "avg_colorfulness": avg_s,  # proxy
     }
 
 
@@ -175,6 +169,55 @@ def _industry_bonus(row: pd.Series, industry: str) -> float:
     return 1.5 if query_industry in row_industry else 0.0
 
 
+def _constraint_penalty(
+    hex_codes: List[str],
+    stats: Dict[str, float],
+    constraints: List[str],
+) -> float:
+    penalty = 0.0
+    constraint_text = " ".join(constraints).lower()
+
+    for h in hex_codes:
+        hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
+
+        # explicit no-red rule
+        if "no red" in constraint_text:
+            if hue < 25 or hue > 335:
+                penalty += 1.2
+
+        # avoid harsh colors: punish saturated, bright, aggressive hues
+        if "avoid harsh colors" in constraint_text:
+            if sat > 0.72:
+                penalty += 0.9
+            if val > 0.90 and sat > 0.55:
+                penalty += 0.6
+            if hue < 20 or hue > 340:
+                penalty += 0.8
+
+        # calm / soft preferences
+        if "soft" in constraint_text or "calm" in constraint_text:
+            if sat > 0.65:
+                penalty += 0.7
+
+        # premium / luxury often prefers restraint
+        if "luxury" in constraint_text or "premium" in constraint_text:
+            if sat > 0.70:
+                penalty += 0.5
+
+    # palette-level penalties
+    if "avoid harsh colors" in constraint_text:
+        if stats["avg_colorfulness"] > 0.62:
+            penalty += 1.5
+        if stats["avg_brightness"] > 0.88 and stats["avg_colorfulness"] > 0.55:
+            penalty += 0.8
+
+    if "soft" in constraint_text or "calm" in constraint_text:
+        if stats["avg_colorfulness"] > 0.55:
+            penalty += 1.0
+
+    return penalty
+
+
 def color_retrieve(
     emotions: List[str],
     industry: str = "",
@@ -184,7 +227,7 @@ def color_retrieve(
 ) -> Dict[str, Any]:
     """
     Retrieve candidate palettes from the branding palette dataset and rerank them
-    with EmoSet-based visual grounding.
+    with EmoSet-based visual grounding and constraint-aware penalties.
     """
     style_keywords = style_keywords or []
     constraints = constraints or []
@@ -223,16 +266,18 @@ def color_retrieve(
             stats["avg_colorfulness"], emoset_profile["colorfulness_target"]
         )
 
-        emoset_alignment_score = max(0.0, 2.0 - (brightness_gap + colorfulness_gap) * 2.5)
+        emoset_alignment_score = max(
+            0.0,
+            2.0 - (brightness_gap + colorfulness_gap) * 2.5
+        )
 
-        penalty = 0.0
-        constraint_text = " ".join(constraints).lower()
-        if "no red" in constraint_text:
-            # rough heuristic: penalize if too many reds/oranges
-            if any(_rgb_to_hsv_scaled(_hex_to_rgb(h))[0] < 25 or _rgb_to_hsv_scaled(_hex_to_rgb(h))[0] > 335 for h in hex_codes):
-                penalty += 1.5
+        penalty = _constraint_penalty(
+            hex_codes=hex_codes,
+            stats=stats,
+            constraints=constraints,
+        )
 
-        total_score = base_score + industry_score + emoset_alignment_score - penalty
+        total_score = base_score + industry_score + emoset_alignment_score - (penalty * 1.25)
 
         scored_rows.append({
             "palette_name": row.get("palette_name", row.get("name", f"palette_{len(scored_rows)+1}")),
@@ -258,8 +303,9 @@ def color_retrieve(
 
     rationale = (
         f"Retrieved palettes by matching requested emotions/styles {sorted(requested_terms)} "
-        f"against the branding palette labels, then reranked them using EmoSet-derived "
-        f"brightness/colorfulness targets for {emotions}."
+        f"against the branding palette labels, reranked them using EmoSet-derived "
+        f"brightness/colorfulness targets for {emotions}, and applied constraint penalties "
+        f"for {constraints if constraints else ['none']}."
     )
 
     return {
@@ -267,6 +313,7 @@ def color_retrieve(
             "emotions": emotions,
             "industry": industry,
             "style_keywords": style_keywords,
+            "constraints": constraints,
         },
         "best_palette": best,
         "top_k_palettes": top,
