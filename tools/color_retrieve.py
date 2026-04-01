@@ -131,7 +131,7 @@ def _palette_stats(hex_codes: List[str]) -> Dict[str, float]:
         "avg_hue": avg_h,
         "avg_saturation": avg_s,
         "avg_brightness": avg_v,
-        "avg_colorfulness": avg_s,  # proxy
+        "avg_colorfulness": avg_s,
     }
 
 
@@ -180,12 +180,10 @@ def _constraint_penalty(
     for h in hex_codes:
         hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
 
-        # explicit no-red rule
         if "no red" in constraint_text:
             if hue < 25 or hue > 335:
                 penalty += 1.2
 
-        # avoid harsh colors: punish saturated, bright, aggressive hues
         if "avoid harsh colors" in constraint_text:
             if sat > 0.72:
                 penalty += 0.9
@@ -194,17 +192,14 @@ def _constraint_penalty(
             if hue < 20 or hue > 340:
                 penalty += 0.8
 
-        # calm / soft preferences
         if "soft" in constraint_text or "calm" in constraint_text:
             if sat > 0.65:
                 penalty += 0.7
 
-        # premium / luxury often prefers restraint
         if "luxury" in constraint_text or "premium" in constraint_text:
             if sat > 0.70:
                 penalty += 0.5
 
-    # palette-level penalties
     if "avoid harsh colors" in constraint_text:
         if stats["avg_colorfulness"] > 0.62:
             penalty += 1.5
@@ -225,10 +220,6 @@ def color_retrieve(
     constraints: List[str] | None = None,
     top_k: int = 5,
 ) -> Dict[str, Any]:
-    """
-    Retrieve candidate palettes from the branding palette dataset and rerank them
-    with EmoSet-based visual grounding and constraint-aware penalties.
-    """
     style_keywords = style_keywords or []
     constraints = constraints or []
 
@@ -253,29 +244,16 @@ def color_retrieve(
 
         emotion_hits = len(requested_terms & row_label_set)
         base_score = float(emotion_hits) * 3.0
-
         industry_score = _industry_bonus(row, industry)
 
         hex_codes = [str(row[c]).strip() for c in hex_cols]
         stats = _palette_stats(hex_codes)
 
-        brightness_gap = _distance(
-            stats["avg_brightness"], emoset_profile["brightness_target"]
-        )
-        colorfulness_gap = _distance(
-            stats["avg_colorfulness"], emoset_profile["colorfulness_target"]
-        )
+        brightness_gap = _distance(stats["avg_brightness"], emoset_profile["brightness_target"])
+        colorfulness_gap = _distance(stats["avg_colorfulness"], emoset_profile["colorfulness_target"])
+        emoset_alignment_score = max(0.0, 2.0 - (brightness_gap + colorfulness_gap) * 2.5)
 
-        emoset_alignment_score = max(
-            0.0,
-            2.0 - (brightness_gap + colorfulness_gap) * 2.5
-        )
-
-        penalty = _constraint_penalty(
-            hex_codes=hex_codes,
-            stats=stats,
-            constraints=constraints,
-        )
+        penalty = _constraint_penalty(hex_codes, stats, constraints)
 
         total_score = base_score + industry_score + emoset_alignment_score - (penalty * 1.25)
 
