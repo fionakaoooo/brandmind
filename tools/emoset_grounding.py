@@ -1,19 +1,10 @@
-import pandas as pd
-
-EMOSET_PATH = "data/processed/emoset_emotion_summary.csv"
-
-
-def emotion_to_visual_profile(emotions):
-    df = pd.read_csv(EMOSET_PATH)
-    hit = df[df["emotion"].isin(emotions)]
-
-    if hit.empty:
-        return {
-            "brightness_target": 0.55,
-            "colorfulness_target": 0.55
-        }
-
-    return {
-        "brightness_target": float(hit["brightness_mean"].mean()),
-        "colorfulness_target": float(hit["colorfulness_mean"].mean())
-    }
+EMOTION_PRIORS = {
+    "amusement": {"brightness_target": 0.8, "colorfulness_target": 0.8},
+    "awe": {"brightness_target": 0.6, "colorfulness_target": 0.7},
+    "contentment": {"brightness_target": 0.7, "colorfulness_target": 0.6},
+    "excitement": {"brightness_target": 0.6, "colorfulness_target": 0.5},
+    "anger": {"brightness_target": 0.5, "colorfulness_target": 0.7},
+    "disgust": {"brightness_target": 0.7, "colorfulness_target": 0.7},
+    "fear": {"brightness_target": 0.3, "colorfulness_target": 0.6},
+    "sadness": {"brightness_target": 0.4, "colorfulness_target": 0.7},
+}
