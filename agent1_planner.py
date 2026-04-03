@@ -146,6 +146,8 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
         "archetype": archetype,
         "archetype_rationale": rationale,
         "design_constraints": constraints,
+        "constraints": constraints,
+        "clip_features": clip_context if clip_context else state.get("clip_features"),
         "status": "generating",
         "iteration_count": 0,
         "revision_history": [],
