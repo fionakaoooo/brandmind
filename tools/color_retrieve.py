@@ -346,6 +346,19 @@ def color_retrieve(
         f"for {constraints if constraints else ['none']}."
     )
 
+    # add WCAG anchor colors so palette always has high-contrast pairs
+    if best and "hex_codes" in best:
+        if "#FFFFFF" not in best["hex_codes"]:
+            best["hex_codes"].append("#FFFFFF")
+        if "#1A1A1A" not in best["hex_codes"]:
+            best["hex_codes"].append("#1A1A1A")
+    for p in top:
+        if "hex_codes" in p:
+            if "#FFFFFF" not in p["hex_codes"]:
+                p["hex_codes"].append("#FFFFFF")
+            if "#1A1A1A" not in p["hex_codes"]:
+                p["hex_codes"].append("#1A1A1A")
+
     return {
         "query": {
             "emotions": emotions,
