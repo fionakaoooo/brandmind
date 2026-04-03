@@ -1,0 +1,89 @@
+{
+  "timestamp": "2026-04-03T13:44:16.775976",
+  "test_cases": [
+    {
+      "id": "case_01_verdant_skincare",
+      "brand_brief": "We are launching a sustainable skincare brand called Verdant targeting eco-conscious women aged 25-40. The brand should feel premium but warm and grounded in nature. The color palette must be WCAG AA accessible. No neon colors.",
+      "agent1": {
+        "archetype": "Organic",
+        "rationale": "The brand focus on sustainability, natural skincare, and warm grounded aesthetic aligns with the Organic archetype.",
+        "constraints_extracted": 8,
+        "constraints": [
+          "Color palette must be WCAG AA accessible",
+          "No neon colors",
+          "Must feel premium",
+          "Must feel warm and grounded in nature",
+          "Tone must be approachable for eco-conscious women aged 25-40",
+          "Must avoid harsh or synthetic visual elements",
+          "Must incorporate natural or organic design elements",
+          "Must respect industry conventions of the sustainable skincare industry"
+        ]
+      },
+      "agent2": {
+        "headline_font": "Lora",
+        "body_font": "Karla",
+        "palette": [
+          "#9d7f56",
+          "#b39d53",
+          "#626750",
+          "#e4c956",
+          "#8eb040",
+          "#FFFFFF",
+          "#1A1A1A"
+        ]
+      },
+      "agent3": {
+        "wcag_summary": "12/42 pairs pass WCAG 2.1 AA",
+        "wcag_pass_rate": 0.286,
+        "coherence_score": 4.2,
+        "constraint_pass_rate": 0.875,
+        "constraint_pass_count": 7,
+        "constraint_total": 8,
+        "approved": false,
+        "revision_triggered": true
+      }
+    },
+    {
+      "id": "case_02_vault_fintech",
+      "brand_brief": "We are building a fintech startup called Vault targeting young professionals aged 22-35. The brand should feel cutting-edge, trustworthy, and minimal. No traditional bank vibes. Must be WCAG accessible. No warm or earthy tones.",
+      "agent1": {
+        "archetype": "Tech",
+        "rationale": "The brand emphasis on cutting-edge modern minimal aesthetic combined with fintech focus aligns with the Tech archetype.",
+        "constraints_extracted": 8,
+        "constraints": [
+          "Must be WCAG accessible",
+          "Must feel cutting-edge",
+          "Must feel trustworthy",
+          "Must feel minimal",
+          "Must have a sleek modern look",
+          "No traditional bank vibes",
+          "No warm or earthy tones",
+          "Must be suitable for young professionals aged 22-35"
+        ]
+      },
+      "agent2": {
+        "headline_font": "Montserrat",
+        "body_font": "Space Mono",
+        "palette": [
+          "#262503",
+          "#e1a898",
+          "#ed8fcf",
+          "#654741",
+          "#19e3eb",
+          "#FFFFFF",
+          "#1A1A1A"
+        ]
+      },
+      "agent3": {
+        "wcag_summary": "20/42 pairs pass WCAG 2.1 AA",
+        "wcag_pass_rate": 0.476,
+        "coherence_score": 4.0,
+        "constraint_pass_rate": 0.75,
+        "constraint_pass_count": 6,
+        "constraint_total": 8,
+        "approved": false,
+        "revision_triggered": true
+      }
+    }
+  ]
+}
