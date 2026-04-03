@@ -193,7 +193,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     """
     brand_brief = state["brand_brief"]
     archetype = state["archetype"]
-    constraints = state.get("constraints", [])
+    constraints = state.get("design_constraints", [])
     clip_context = state.get("clip_context", "")
 
     design_spec = infer_design_spec(
