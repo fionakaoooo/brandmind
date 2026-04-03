@@ -27,7 +27,7 @@ def contrast_ratio(hex1: str, hex2: str) -> float:
     return (lighter + 0.05) / (darker + 0.05)
 
 
-def evaluate_palette_wcag(hex_codes: List[str]) -> Dict:
+def evaluate_palette_wcag(hex_codes: List[str], level: str = "AA", large_text: bool = False) -> Dict:
     """
     Checks all foreground/background pairs in a palette for WCAG 2.1 AA compliance.
     AA requires contrast ratio >= 4.5 for normal text.
