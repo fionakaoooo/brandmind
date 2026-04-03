@@ -1,0 +1,206 @@
+{
+  "status": "partial_completed",
+  "completed_cases": 5,
+  "planned_cases": 6,
+  "missing_case_ids": [
+    "case_06_artisan_bakery"
+  ],
+  "interrupt_reason": "Groq llama-3.3-70b-versatile token-per-day quota reached (429).",
+  "summary": {
+    "brandmind_full": {
+      "cases": 5,
+      "constraint_satisfaction_rate": 0.733,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.56,
+      "avg_runtime_sec": 40.192
+    },
+    "baseline_zero_shot_gpt4o": {
+      "cases": 5,
+      "constraint_satisfaction_rate": 0.8,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.5,
+      "avg_runtime_sec": 4.564
+    },
+    "baseline_rag_only": {
+      "cases": 5,
+      "constraint_satisfaction_rate": 0.933,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.1,
+      "avg_runtime_sec": 3.596
+    },
+    "baseline_fontjoy": {
+      "cases": 5,
+      "constraint_satisfaction_rate": 0.2,
+      "wcag_pass_rate": 0.0,
+      "archetype_coherence_score_mean": 3.0,
+      "avg_runtime_sec": 1.06
+    }
+  },
+  "details": [
+    {
+      "case_id": "case_01_fintech_corporate",
+      "results": {
+        "brandmind_full": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 29.15
+        },
+        "baseline_zero_shot_gpt4o": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 4.58
+        },
+        "baseline_rag_only": {
+          "coherence_score": 4.0,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 4.77
+        },
+        "baseline_fontjoy": {
+          "coherence_score": 3.5,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "wcag_case_pass": false,
+          "runtime_sec": 0.82
+        }
+      }
+    },
+    {
+      "case_id": "case_02_kids_playful",
+      "results": {
+        "brandmind_full": {
+          "coherence_score": 4.8,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 71.23
+        },
+        "baseline_zero_shot_gpt4o": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 6.82
+        },
+        "baseline_rag_only": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 4.31
+        },
+        "baseline_fontjoy": {
+          "coherence_score": 3.0,
+          "constraint_pass_count": 0,
+          "constraint_total": 3,
+          "wcag_case_pass": false,
+          "runtime_sec": 1.74
+        }
+      }
+    },
+    {
+      "case_id": "case_03_luxury_jewelry",
+      "results": {
+        "brandmind_full": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 15.03
+        },
+        "baseline_zero_shot_gpt4o": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 4.31
+        },
+        "baseline_rag_only": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 2.84
+        },
+        "baseline_fontjoy": {
+          "coherence_score": 3.0,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "wcag_case_pass": false,
+          "runtime_sec": 1.14
+        }
+      }
+    },
+    {
+      "case_id": "case_04_organic_skincare",
+      "results": {
+        "brandmind_full": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 71.43
+        },
+        "baseline_zero_shot_gpt4o": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 3.83
+        },
+        "baseline_rag_only": {
+          "coherence_score": 4.0,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 2.5
+        },
+        "baseline_fontjoy": {
+          "coherence_score": 2.0,
+          "constraint_pass_count": 0,
+          "constraint_total": 3,
+          "wcag_case_pass": false,
+          "runtime_sec": 0.87
+        }
+      }
+    },
+    {
+      "case_id": "case_05_cybersecurity_tech",
+      "results": {
+        "brandmind_full": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 14.12
+        },
+        "baseline_zero_shot_gpt4o": {
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 3.28
+        },
+        "baseline_rag_only": {
+          "coherence_score": 3.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "wcag_case_pass": true,
+          "runtime_sec": 3.56
+        },
+        "baseline_fontjoy": {
+          "coherence_score": 3.5,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "wcag_case_pass": false,
+          "runtime_sec": 0.73
+        }
+      }
+    }
+  ]
+}
