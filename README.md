@@ -1,15 +1,13 @@
-# BrandMind: Multi-Agentic Framework for Brand Identity
+# Brandmind: Building a multi-agentic framework for brand identity 
 
-**DS-UA 301: Generative AI — NYU, Spring 2026**  
+**DS-UA 301 Spring 2026**  
 Sylvia Zhang · Helen Wei · Fiona Kao
 
 ---
 
 ## Overview
 
-BrandMind is a multi-agent LLM system that takes a natural language brand description and outputs a complete brand identity starter kit — font pairings, color palette, and brand tone/voice — with design reasoning.
-
-Built with LangGraph, GPT-4o, and structured function calling against real typography and color datasets.
+Brandmind is a multi-agent LLM system that takes a natural language brand description and outputs a complete brand identity starter kit, including font pairings, color palette, and brand tone/voice — with design reasoning. Built with LangGraph, GPT-4o, and structured function calling against real typography and color datasets.
 
 ---
 
@@ -65,7 +63,7 @@ brandmind/
 
 ## Quickstart
 
-### 1. Clone and install
+### 1. clone and install
 
 ```bash
 git clone https://github.com/your-org/brandmind.git
@@ -86,7 +84,7 @@ OPENAI_API_KEY=your-key-here
 GOOGLE_FONTS_KEY=your-key-here   # optional, falls back to curated list
 ```
 
-### 3. Run individual agents (for development)
+### 3. run individual agents (for development)
 
 ```bash
 python agent1_planner.py
@@ -94,13 +92,13 @@ python agent2_generator.py
 python agent3_qc.py
 ```
 
-### 4. Run the full pipeline
+### 4. run the full pipeline
 
 ```bash
 python graph.py
 ```
 
-### 5. Launch the Streamlit app
+### 5. launch the Streamlit app
 
 ```bash
 streamlit run app.py
@@ -108,7 +106,7 @@ streamlit run app.py
 
 ---
 
-## Running on Google Colab
+## running on Google Colab
 
 ```python
 !git clone https://github.com/your-org/brandmind.git
@@ -133,7 +131,7 @@ Upload `emotion_labeled_palettes.csv` to the Colab session, or mount Google Driv
 
 ---
 
-## Datasets
+## datasets
 
 | Dataset | Source | Used For |
 |---|---|---|
@@ -143,7 +141,7 @@ Upload `emotion_labeled_palettes.csv` to the Colab session, or mount Google Driv
 
 ---
 
-## Baselines
+## baselines
 
 | System | Description |
 |---|---|
@@ -154,7 +152,7 @@ Upload `emotion_labeled_palettes.csv` to the Colab session, or mount Google Driv
 
 ---
 
-## Evaluation Metrics
+## evaluation metrics
 
 - **Constraint Satisfaction Rate** — % of outputs honoring stated brand constraints
 - **Human Preference Score** — Likert 1–5, 20 participants, blind A/B vs. Baseline 1
@@ -163,23 +161,7 @@ Upload `emotion_labeled_palettes.csv` to the Colab session, or mount Google Driv
 
 ---
 
-## Contributing
-
-Each team member works on their own branch:
-
-```bash
-git checkout -b agent1-planner   # Fiona
-git checkout -b agent2-generator # Sylvia
-git checkout -b agent3-qc        # Helen
-```
-
-**Important:** `state.py` is a shared contract. Any changes must be agreed on as a group before merging, since all three agents depend on it.
-
-PR into `main` only when your agent runs without errors on the test block at the bottom of your file.
-
----
-
-## Milestones
+## due dates
 
 | Date | Milestone |
 |---|---|
@@ -190,7 +172,7 @@ PR into `main` only when your agent runs without errors on the test block at the
 
 ---
 
-## Related Work
+## related Work
 
 - Choi & Hyun (2024). Typeface network and the principle of font pairing. *Scientific Reports.*
 - Wu et al. (2023). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. *arXiv:2308.08155.*
