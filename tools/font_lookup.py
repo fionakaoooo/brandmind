@@ -24,7 +24,7 @@ ARCHETYPE_CATEGORY_MAP = {
 
 @lru_cache(maxsize=1)
 def fetch_all_google_fonts() -> List[Dict[str, Any]]:
-    """
+    """Fetch all fonts from Google Fonts API."""
     if not GOOGLE_FONTS_API_KEY:
         print("Warning: GOOGLE_FONTS_API_KEY is not set. Using a fallback mock list.")
         return _fallback_mock_fonts()
