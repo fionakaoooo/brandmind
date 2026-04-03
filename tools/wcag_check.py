@@ -58,6 +58,11 @@ def evaluate_palette_wcag(hex_codes: List[str], level: str = "AA", large_text: b
         "pairs_checked": pairs_checked,
         "pairs_passed": pairs_passed,
         "overall_pass": overall_pass,
+        "all_pass": pairs_passed == pairs_checked,
+        "pass_rate": round(pairs_passed / pairs_checked, 3) if pairs_checked else 0.0,
+        "pass_count": pairs_passed,
+        "total_checks": pairs_checked,
+        "color_checks": results,
         "details": results,
         "summary": f"{pairs_passed}/{pairs_checked} pairs pass WCAG 2.1 AA (ratio >= 4.5)",
     }
