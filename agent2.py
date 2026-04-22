@@ -188,63 +188,44 @@ def assemble_draft_brand_kit(
 
 
 def design_generator_agent(state: BrandMindState) -> BrandMindState:
-    """
-    Main Agent 2 node.
-    """
     brand_brief = state["brand_brief"]
     archetype = state["archetype"]
-    constraints = state.get("constraints", [])
-    clip_context = state.get("clip_context", "")
+    constraints = state.get("design_constraints", [])
+    qc_feedback = state.get("qc_feedback") or ""
+
+    # 把 feedback 里提到的具体修复指令转成额外 constraint
+    feedback_constraints = []
+    if qc_feedback:
+        if "wcag" in qc_feedback.lower() or "accessibility" in qc_feedback.lower():
+            feedback_constraints.append(
+                "CRITICAL: previous palette failed WCAG AA. "
+                "You MUST select a palette with higher contrast. "
+                "Include at least one very dark color (#1A1A1A or similar) "
+                "and one very light color (#F5F5F5 or similar)."
+            )
+        if "warm" in qc_feedback.lower() or "earthy" in qc_feedback.lower():
+            feedback_constraints.append(
+                "CRITICAL: previous palette contained warm/earthy tones which violate constraints. "
+                "Select only cool-toned colors (blues, greys, cyans)."
+            )
+        if "constraint" in qc_feedback.lower():
+            feedback_constraints.append(
+                f"Previous QC feedback to address: {qc_feedback[:300]}"
+            )
+
+    merged_constraints = constraints + feedback_constraints  # ← 合并进去
 
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
-        constraints=constraints,
-        clip_context=clip_context,
+        constraints=merged_constraints,  # ← 用合并后的
     )
-
-    font_candidates = font_lookup(
-        archetype=archetype,
-        style=design_spec["font_style"],
-        top_k=8
-    )
-    font_pair = choose_font_pair(font_candidates)
 
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
         style_keywords=design_spec["style_keywords"],
-        constraints=constraints,
+        constraints=merged_constraints,  # ← 这里也要改，原来只传 constraints
         top_k=5,
     )
-
-    heuristics: List[Dict[str, Any]] = []
-    for attr in design_spec["brand_attributes"]:
-        heuristics.extend(heuristic_search(attr, weights=state.get("heuristic_weights")))
-
-    # de-duplicate heuristics by rule text
-    seen = set()
-    deduped_heuristics = []
-    for item in heuristics:
-        rule = item.get("rule", "").strip()
-        if rule and rule not in seen:
-            seen.add(rule)
-            deduped_heuristics.append(item)
-
-    draft_brand_kit = assemble_draft_brand_kit(
-        archetype=archetype,
-        design_spec=design_spec,
-        font_pair=font_pair,
-        palette_result=palette_result,
-        heuristics=deduped_heuristics[:6],
-        constraints=constraints,
-    )
-
-    state["design_spec"] = design_spec
-    state["draft_brand_kit"] = draft_brand_kit
-    state["generator_output"] = {
-        "status": "draft_ready",
-        "message": "Agent 2 assembled a draft brand kit using retrieved fonts, colors, and design rules."
-    }
-
-    return state
+    ...
