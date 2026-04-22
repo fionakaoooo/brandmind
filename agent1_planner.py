@@ -10,6 +10,7 @@ import os
 import json
 from openai import OpenAI
 from state import BrandMindState, ARCHETYPES
+from tools.heuristic_search import initialise_weights
 
 client = OpenAI(
     api_key=os.environ.get("GROQ_API_KEY"),
@@ -140,6 +141,8 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print(f"[Planner] Extracted {len(constraints)} constraints:")
     for c in constraints:
         print(f"  • {c}")
+
+    state = initialise_weights(state)
 
     return {
         **state,
