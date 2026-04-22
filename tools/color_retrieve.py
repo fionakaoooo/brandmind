@@ -1,4 +1,4 @@
-%%writefile /content/brandmind/tools/color_retrieve.py
+
 from __future__ import annotations
 
 import os
