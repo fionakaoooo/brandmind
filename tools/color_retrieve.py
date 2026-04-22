@@ -151,22 +151,17 @@ def _palette_stats(hex_codes: List[str]) -> Dict[str, float]:
         "avg_hue": avg_h,
         "avg_saturation": avg_s,
         "avg_brightness": avg_v,
-        "avg_colorfulness": avg_s,  # saturation 作为 colorfulness proxy
+        "avg_colorfulness": avg_s,
     }
 
 
 def _build_emoset_profile(emotions: List[str]) -> Dict[str, float]:
-    """
-    先直接匹配 emotion；
-    如果匹配不到，再走 品牌情绪 -> EmoSet 原生情绪 映射。
-    """
     df = load_emoset_summary()
     if df.empty:
         return {"brightness_target": 0.55, "colorfulness_target": 0.55}
 
     emotions_norm = [_normalize_col(e) for e in emotions]
 
-    # 1) 直接匹配
     direct_hit = df[df["emotion"].astype(str).map(_normalize_col).isin(set(emotions_norm))]
     if not direct_hit.empty:
         return {
@@ -174,7 +169,6 @@ def _build_emoset_profile(emotions: List[str]) -> Dict[str, float]:
             "colorfulness_target": float(direct_hit["colorfulness_mean"].mean()),
         }
 
-    # 2) 映射到 EmoSet 原生情绪
     mapped = []
     for emo in emotions_norm:
         mapped.extend(EMOSET_BRAND_EMOTION_MAP.get(emo, []))
@@ -218,12 +212,10 @@ def _constraint_penalty(
     for h in hex_codes:
         hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
 
-        # no red
         if "no red" in constraint_text:
             if hue < 25 or hue > 335:
                 penalty += 1.2
 
-        # avoid harsh colors
         if "avoid harsh colors" in constraint_text:
             if sat > 0.60:
                 penalty += 1.2
@@ -232,17 +224,14 @@ def _constraint_penalty(
             if hue < 25 or hue > 335:
                 penalty += 1.0
 
-        # soft / calm
         if "soft" in constraint_text or "calm" in constraint_text:
             if sat > 0.60:
                 penalty += 0.8
 
-        # luxury / premium
         if "luxury" in constraint_text or "premium" in constraint_text:
             if sat > 0.65:
                 penalty += 0.6
 
-    # palette-level penalties
     if "avoid harsh colors" in constraint_text:
         if stats["avg_colorfulness"] > 0.55:
             penalty += 2.0
@@ -256,19 +245,45 @@ def _constraint_penalty(
     return penalty
 
 
+def _palette_overlaps_excluded(hex_codes: List[str], excluded: set) -> bool:
+    """
+    Returns True if this palette shares 2 or more colors with the excluded set.
+    Used to filter out the previous failed palette in revision iterations.
+    """
+    if not excluded:
+        return False
+    normalized = {h.upper().strip().lstrip("#") for h in hex_codes}
+    overlap = sum(1 for h in normalized if h in excluded)
+    return overlap >= 2
+
+
 def color_retrieve(
     emotions: List[str],
     industry: str = "",
     style_keywords: List[str] | None = None,
     constraints: List[str] | None = None,
     top_k: int = 5,
+    excluded_hex: List[str] | None = None,   # ← 新增参数
 ) -> Dict[str, Any]:
     """
     从 branding palette dataset 检索候选 palette，
     再结合 EmoSet visual profile 与 constraint penalty 进行重排。
+
+    excluded_hex: list of hex codes from the previous failed palette.
+    Any candidate palette that overlaps with 2+ of these colors will be
+    filtered out, forcing the generator to pick a genuinely different palette
+    on revision iterations.
     """
     style_keywords = style_keywords or []
     constraints = constraints or []
+
+    # Normalise excluded_hex into a set of bare 6-char uppercase strings
+    excluded_set: set = set()
+    if excluded_hex:
+        for h in excluded_hex:
+            bare = str(h).strip().lstrip("#").upper()
+            if len(bare) == 6:
+                excluded_set.add(bare)
 
     df = load_palette_df().copy()
     hex_cols = _find_hex_columns(df)
@@ -312,7 +327,6 @@ def color_retrieve(
 
         total_score = base_score + industry_score + emoset_alignment_score - (penalty * 2.0)
 
-        # 对 harsh palette 做更强约束
         constraint_text = " ".join(constraints).lower()
         if "avoid harsh colors" in constraint_text and penalty >= 2.5:
             total_score -= 4.0
@@ -336,6 +350,23 @@ def color_retrieve(
         })
 
     scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
+
+    # ── Filter out palettes that overlap too much with the previous failed one ──
+    if excluded_set:
+        filtered = [
+            p for p in scored_rows
+            if not _palette_overlaps_excluded(p["hex_codes"], excluded_set)
+        ]
+        # Only use the filtered list if it still has enough candidates;
+        # otherwise fall back to the full ranked list to avoid empty results.
+        if len(filtered) >= top_k:
+            scored_rows = filtered
+            print(f"[ColorRetrieve] Excluded {len(scored_rows) - len(filtered)} overlapping palettes. "
+                  f"{len(filtered)} candidates remaining.")
+        else:
+            print(f"[ColorRetrieve] Warning: fewer than {top_k} non-overlapping palettes found "
+                  f"({len(filtered)}). Using full ranked list.")
+
     top = scored_rows[:top_k]
     best = top[0] if top else {}
 
