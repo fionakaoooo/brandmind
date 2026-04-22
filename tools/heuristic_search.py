@@ -146,10 +146,10 @@ def initialise_weights(state: Dict[str, Any]) -> Dict[str, Any]:
 # ── Helper: find which rules were actually used ───────────────────────────────
 
 def _extract_used_rule_ids(state: Dict[str, Any]) -> List[str]:
-    """
-    从 draft_brand_kit["design_rules"] 反查回 rule id，
-    从而知道当前 draft 实际用了哪些 heuristic rules。
-    """
+    explicit_ids = state.get("used_heuristic_rule_ids") or []
+    if explicit_ids:
+        return [str(x) for x in explicit_ids]
+        
     kit = state.get("draft_brand_kit") or {}
     design_rules: List[str] = kit.get("design_rules", [])
     if not design_rules:
