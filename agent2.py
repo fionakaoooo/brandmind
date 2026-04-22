@@ -220,7 +220,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
 
     heuristics: List[Dict[str, Any]] = []
     for attr in design_spec["brand_attributes"]:
-        heuristics.extend(heuristic_search(attr))
+        heuristics.extend(heuristic_search(attr, weights=state.get("heuristic_weights")))
 
     # de-duplicate heuristics by rule text
     seen = set()
