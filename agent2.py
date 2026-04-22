@@ -213,7 +213,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
                 f"Previous QC feedback to address: {qc_feedback[:300]}"
             )
 
-    merged_constraints = constraints + feedback_constraints
+    merged_constraints = constraints + feedback_constraints[:1]
 
     # ── Infer design spec ────────────────────────────────────────────────────
     design_spec = infer_design_spec(
