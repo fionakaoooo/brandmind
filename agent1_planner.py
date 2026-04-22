@@ -136,11 +136,41 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print(f"[Planner] Archetype: {archetype}")
     print(f"[Planner] Rationale: {rationale}")
 
-    # step 2: extract design constraints
-    constraints = extract_constraints(brand_brief, archetype)
+     # step 2: extract design constraints
+     constraints = extract_constraints(brand_brief, archetype)
+
+     # step 3: force-inject literal constraints from brief  ← 新加的
+    brief_lower = brand_brief.lower()
+    forced = []
+    if "wcag" in brief_lower or "accessible" in brief_lower:
+        forced.append("Color palette must be WCAG AA accessible")
+    if "no neon" in brief_lower:
+        forced.append("No neon colors")
+    if "no warm" in brief_lower or "no earthy" in brief_lower:
+        forced.append("No warm or earthy tones")
+    if "no serif" in brief_lower:
+        forced.append("No serif fonts")
+    if "no traditional bank" in brief_lower:
+        forced.append("No traditional bank vibes")
+
+    def _norm(s):
+        return s.strip().rstrip(".,;").lower()
+
+    seen = set()
+    deduped = []
+    for c in constraints:
+        if _norm(c) not in seen:
+            seen.add(_norm(c))
+            deduped.append(c)
+            constraints = deduped
+
+    for f in forced:
+        if _norm(f) not in {_norm(c) for c in constraints}:
+            constraints.insert(0, f)
+
     print(f"[Planner] Extracted {len(constraints)} constraints:")
     for c in constraints:
-        print(f"  • {c}")
+         print(f"  • {c}")
 
     state = initialise_weights(state)
 
