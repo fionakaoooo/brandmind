@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -22,7 +21,6 @@ EMOSET_SUMMARY_PATH = os.environ.get(
 HEX_RE = re.compile(r"^#(?:[0-9a-fA-F]{6})$")
 
 
-# 品牌情绪 -> EmoSet原生8类情绪 的桥接映射
 EMOSET_BRAND_EMOTION_MAP = {
     "calm": ["contentment"],
     "soft": ["contentment"],
@@ -110,38 +108,53 @@ def _hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
 
 
 def _relative_luminance(hex_code: str) -> float:
-    """新增：计算相对亮度，用于 WCAG 对比度计算"""
     rgb = _hex_to_rgb(hex_code)
-    def channel(c):
+
+    def channel(c: int) -> float:
         c = c / 255.0
         return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
     r, g, b = [channel(c) for c in rgb]
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 
 
 def _contrast_ratio(hex1: str, hex2: str) -> float:
-    """新增：计算两个颜色的 WCAG 对比度"""
     l1 = _relative_luminance(hex1)
     l2 = _relative_luminance(hex2)
     lighter, darker = max(l1, l2), min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
 
 
-def _wcag_bonus(hex_codes: List[str]) -> float:
-    """新增：对内部高对比度调色板给予奖励分"""
-    valid = [h for h in hex_codes if HEX_RE.match(str(h).strip())]
-    bonus = 0.0
+def _pairwise_wcag_stats(hex_codes: List[str]) -> Dict[str, Any]:
+    valid = [h.strip() for h in hex_codes if HEX_RE.match(str(h).strip())]
+    if len(valid) < 2:
+        return {
+            "pass_count": 0,
+            "total_pairs": 0,
+            "pass_rate": 0.0,
+            "max_ratio": 0.0,
+            "min_ratio": 0.0,
+        }
+
+    pass_count = 0
+    total_pairs = 0
+    ratios: List[float] = []
+
     for i in range(len(valid)):
         for j in range(i + 1, len(valid)):
-            try:
-                ratio = _contrast_ratio(valid[i], valid[j])
-                if ratio >= 4.5:
-                    bonus += 0.3
-                elif ratio >= 3.0:
-                    bonus += 0.1
-            except Exception:
-                pass
-    return bonus
+            ratio = _contrast_ratio(valid[i], valid[j])
+            ratios.append(ratio)
+            total_pairs += 1
+            if ratio >= 4.5:
+                pass_count += 1
+
+    return {
+        "pass_count": pass_count,
+        "total_pairs": total_pairs,
+        "pass_rate": round(pass_count / total_pairs, 3) if total_pairs else 0.0,
+        "max_ratio": round(max(ratios), 3) if ratios else 0.0,
+        "min_ratio": round(min(ratios), 3) if ratios else 0.0,
+    }
 
 
 def _rgb_to_hsv_scaled(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
@@ -164,7 +177,12 @@ def _rgb_to_hsv_scaled(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
 def _palette_stats(hex_codes: List[str]) -> Dict[str, float]:
     hsvs = [_rgb_to_hsv_scaled(_hex_to_rgb(h)) for h in hex_codes if HEX_RE.match(str(h))]
     if not hsvs:
-        return {"avg_hue": 0.0, "avg_saturation": 0.0, "avg_brightness": 0.0, "avg_colorfulness": 0.0}
+        return {
+            "avg_hue": 0.0,
+            "avg_saturation": 0.0,
+            "avg_brightness": 0.0,
+            "avg_colorfulness": 0.0,
+        }
     avg_h = sum(h for h, _, _ in hsvs) / len(hsvs)
     avg_s = sum(s for _, s, _ in hsvs) / len(hsvs)
     avg_v = sum(v for _, _, v in hsvs) / len(hsvs)
@@ -180,6 +198,7 @@ def _build_emoset_profile(emotions: List[str]) -> Dict[str, float]:
     df = load_emoset_summary()
     if df.empty:
         return {"brightness_target": 0.55, "colorfulness_target": 0.55}
+
     emotions_norm = [_normalize_col(e) for e in emotions]
     direct_hit = df[df["emotion"].astype(str).map(_normalize_col).isin(set(emotions_norm))]
     if not direct_hit.empty:
@@ -187,16 +206,19 @@ def _build_emoset_profile(emotions: List[str]) -> Dict[str, float]:
             "brightness_target": float(direct_hit["brightness_mean"].mean()),
             "colorfulness_target": float(direct_hit["colorfulness_mean"].mean()),
         }
+
     mapped = []
     for emo in emotions_norm:
         mapped.extend(EMOSET_BRAND_EMOTION_MAP.get(emo, []))
     mapped = [_normalize_col(x) for x in mapped]
+
     mapped_hit = df[df["emotion"].astype(str).map(_normalize_col).isin(set(mapped))]
     if not mapped_hit.empty:
         return {
             "brightness_target": float(mapped_hit["brightness_mean"].mean()),
             "colorfulness_target": float(mapped_hit["colorfulness_mean"].mean()),
         }
+
     return {"brightness_target": 0.55, "colorfulness_target": 0.55}
 
 
@@ -221,11 +243,14 @@ def _constraint_penalty(
 ) -> float:
     penalty = 0.0
     constraint_text = " ".join(constraints).lower()
+
     for h in hex_codes:
         hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
+
         if "no red" in constraint_text:
             if hue < 25 or hue > 335:
                 penalty += 1.2
+
         if "avoid harsh colors" in constraint_text:
             if sat > 0.60:
                 penalty += 1.2
@@ -233,20 +258,25 @@ def _constraint_penalty(
                 penalty += 0.8
             if hue < 25 or hue > 335:
                 penalty += 1.0
+
         if "soft" in constraint_text or "calm" in constraint_text:
             if sat > 0.60:
                 penalty += 0.8
+
         if "luxury" in constraint_text or "premium" in constraint_text:
             if sat > 0.65:
                 penalty += 0.6
+
     if "avoid harsh colors" in constraint_text:
         if stats["avg_colorfulness"] > 0.55:
             penalty += 2.0
         if stats["avg_brightness"] > 0.82 and stats["avg_colorfulness"] > 0.45:
             penalty += 1.0
+
     if "soft" in constraint_text or "calm" in constraint_text:
         if stats["avg_colorfulness"] > 0.50:
             penalty += 1.2
+
     return penalty
 
 
@@ -256,13 +286,12 @@ def color_retrieve(
     style_keywords: List[str] | None = None,
     constraints: List[str] | None = None,
     top_k: int = 5,
-    excluded_hex: List[str] | None = None,  # 新增参数
+    excluded_hex: List[str] | None = None,
 ) -> Dict[str, Any]:
     style_keywords = style_keywords or []
     constraints = constraints or []
 
-    # 新增：处理 excluded_hex
-    excluded_set: set = set()
+    excluded_set: set[str] = set()
     if excluded_hex:
         for h in excluded_hex:
             bare = str(h).strip().lstrip("#").upper()
@@ -281,6 +310,11 @@ def color_retrieve(
 
     requested_terms = {_normalize_col(x) for x in (emotions + style_keywords)}
     emoset_profile = _build_emoset_profile(emotions)
+    constraint_text = " ".join(constraints).lower()
+    requires_wcag = any(
+        kw in constraint_text
+        for kw in ["wcag", "accessible", "accessibility", "contrast", "colorblind"]
+    )
 
     scored_rows: List[Dict[str, Any]] = []
 
@@ -301,12 +335,24 @@ def color_retrieve(
 
         penalty = _constraint_penalty(hex_codes=hex_codes, stats=stats, constraints=constraints)
 
-        # 新增：WCAG 对比度奖励
-        wcag_score = _wcag_bonus(hex_codes)
+        wcag_stats = _pairwise_wcag_stats(hex_codes)
+        wcag_score = wcag_stats["pass_rate"] * 4.0  # 强化 WCAG 影响
 
-        total_score = base_score + industry_score + emoset_alignment_score + wcag_score - (penalty * 2.0)
+        total_score = (
+            base_score
+            + industry_score
+            + emoset_alignment_score
+            + wcag_score
+            - (penalty * 2.0)
+        )
 
-        constraint_text = " ".join(constraints).lower()
+        # 如果 brief 明确要求 accessibility，则对低 WCAG palette 加强惩罚
+        if requires_wcag:
+            if wcag_stats["pass_rate"] < 0.30:
+                total_score -= 4.0
+            elif wcag_stats["pass_rate"] < 0.50:
+                total_score -= 2.0
+
         if "avoid harsh colors" in constraint_text and penalty >= 2.5:
             total_score -= 4.0
 
@@ -324,13 +370,13 @@ def color_retrieve(
                 "palette_colorfulness": round(stats["avg_colorfulness"], 3),
                 "alignment_score": round(emoset_alignment_score, 3),
             },
+            "wcag_stats": wcag_stats,
             "penalty": round(penalty, 3),
             "total_score": round(total_score, 3),
         })
 
     scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
 
-    # 新增：对上一轮失败调色板的颜色进行惩罚
     if excluded_set:
         for row in scored_rows:
             normalized = {h.upper().strip().lstrip("#") for h in row["hex_codes"]}
@@ -338,29 +384,16 @@ def color_retrieve(
             if overlap >= 1:
                 row["total_score"] -= overlap * 5.0
         scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
-        print(f"[ColorRetrieve] Applied exclusion penalty for {len(excluded_set)} colors from previous palette.")
 
     top = scored_rows[:top_k]
     best = top[0] if top else {}
 
     rationale = (
         f"Retrieved palettes by matching requested emotions/styles {sorted(requested_terms)} "
-        f"against the branding palette labels, reranked them using EmoSet-derived "
-        f"brightness/colorfulness targets for {emotions}, and applied constraint penalties "
-        f"for {constraints if constraints else ['none']}."
+        f"against branding palette labels, reranked them using EmoSet-derived "
+        f"brightness/colorfulness targets for {emotions}, explicit constraint penalties, "
+        f"and pairwise WCAG contrast scoring."
     )
-
-    # 新增：从2个增加到6个 anchor 颜色，提高 WCAG pass rate
-    wcag_anchors = ["#FFFFFF", "#000000", "#F5F5F5", "#1A1A1A", "#212121", "#FAFAFA"]
-    if best and "hex_codes" in best:
-        for anchor in wcag_anchors:
-            if anchor not in best["hex_codes"]:
-                best["hex_codes"].append(anchor)
-    for p in top:
-        if "hex_codes" in p:
-            for anchor in wcag_anchors:
-                if anchor not in p["hex_codes"]:
-                    p["hex_codes"].append(anchor)
 
     return {
         "query": {
@@ -371,5 +404,6 @@ def color_retrieve(
         },
         "best_palette": best,
         "top_k_palettes": top,
+        "recommended_text_colors": ["#FFFFFF", "#1A1A1A"],
         "rationale": rationale,
     }
