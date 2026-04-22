@@ -284,6 +284,10 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         constraints=merged_constraints,
     )
 
+    state["used_heuristic_rule_ids"] = [
+    h.get("id") for h in deduped_heuristics[:6] if h.get("id")
+]
+
     state["design_spec"] = design_spec
     state["draft_brand_kit"] = draft_brand_kit
     state["generator_output"] = {
