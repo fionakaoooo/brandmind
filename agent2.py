@@ -43,7 +43,6 @@ def infer_design_spec(
     """
     Convert free-form brief into structured design intent for downstream tools.
     """
-
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
 
@@ -191,9 +190,10 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     brand_brief = state["brand_brief"]
     archetype = state["archetype"]
     constraints = state.get("design_constraints", [])
+    clip_context = state.get("clip_context", "")
     qc_feedback = state.get("qc_feedback") or ""
 
-    # 把 feedback 里提到的具体修复指令转成额外 constraint
+    # ── Build feedback-aware constraints ────────────────────────────────────
     feedback_constraints = []
     if qc_feedback:
         if "wcag" in qc_feedback.lower() or "accessibility" in qc_feedback.lower():
@@ -213,19 +213,82 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
                 f"Previous QC feedback to address: {qc_feedback[:300]}"
             )
 
-    merged_constraints = constraints + feedback_constraints  # ← 合并进去
+    merged_constraints = constraints + feedback_constraints
 
+    # ── Infer design spec ────────────────────────────────────────────────────
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
-        constraints=merged_constraints,  # ← 用合并后的
+        constraints=merged_constraints,
+        clip_context=clip_context,
     )
 
+    # ── Font lookup ──────────────────────────────────────────────────────────
+    font_candidates = font_lookup(
+        archetype=archetype,
+        style=design_spec["font_style"],
+        top_k=8
+    )
+    font_pair = choose_font_pair(font_candidates)
+
+    # ── Build excluded_hex from previous failed palette ──────────────────────
+    excluded_hex = []
+    if qc_feedback and state.get("draft_brand_kit"):
+        prev_palette = (
+            state["draft_brand_kit"]
+            .get("color_palette", {})
+            .get("hex_codes", [])
+        )
+        wcag_score = (
+            state.get("qc_scores", {})
+            .get("wcag", {})
+            .get("pass_rate", 1.0)
+        )
+        if wcag_score < 0.5 and prev_palette:
+            excluded_hex = prev_palette
+            print(f"[Generator] Excluding previous palette (WCAG {wcag_score:.2f}): {excluded_hex}")
+
+    # ── Color retrieval ──────────────────────────────────────────────────────
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
         style_keywords=design_spec["style_keywords"],
-        constraints=merged_constraints,  # ← 这里也要改，原来只传 constraints
+        constraints=merged_constraints,
         top_k=5,
+        excluded_hex=excluded_hex,
     )
-    ...
+
+    # ── Heuristic search ─────────────────────────────────────────────────────
+    heuristics: List[Dict[str, Any]] = []
+    for attr in design_spec["brand_attributes"]:
+        heuristics.extend(
+            heuristic_search(attr, weights=state.get("heuristic_weights"))
+        )
+
+    # de-duplicate heuristics by rule text
+    seen = set()
+    deduped_heuristics = []
+    for item in heuristics:
+        rule = item.get("rule", "").strip()
+        if rule and rule not in seen:
+            seen.add(rule)
+            deduped_heuristics.append(item)
+
+    # ── Assemble draft kit ───────────────────────────────────────────────────
+    draft_brand_kit = assemble_draft_brand_kit(
+        archetype=archetype,
+        design_spec=design_spec,
+        font_pair=font_pair,
+        palette_result=palette_result,
+        heuristics=deduped_heuristics[:6],
+        constraints=merged_constraints,
+    )
+
+    state["design_spec"] = design_spec
+    state["draft_brand_kit"] = draft_brand_kit
+    state["generator_output"] = {
+        "status": "draft_ready",
+        "message": "Agent 2 assembled a draft brand kit using retrieved fonts, colors, and design rules."
+    }
+
+    return state
