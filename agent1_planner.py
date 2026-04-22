@@ -1,3 +1,4 @@
+
 """
 Agent 1: Planner Agent
 - Receives brand brief (+ optional CLIP features)
@@ -20,10 +21,6 @@ client = OpenAI(
 # ── Tool: archetype_classifier ──────────────────────────────────────────────
 
 def archetype_classifier(brand_brief: str, clip_context: str = "") -> dict:
-    """
-    Classifies a brand brief into one of 10 archetypes.
-    Returns archetype name + rationale.
-    """
     archetype_list = "\n".join(f"- {a}" for a in ARCHETYPES)
 
     clip_section = ""
@@ -54,15 +51,13 @@ Respond ONLY with valid JSON in this exact format:
 
     result = json.loads(resp.choices[0].message.content)
 
-    # validate archetype is one of the 10
     if result["archetype"] not in ARCHETYPES:
-        # find closest match by case-insensitive comparison
         for a in ARCHETYPES:
             if a.lower() in result["archetype"].lower():
                 result["archetype"] = a
                 break
         else:
-            result["archetype"] = "Minimal"  # safe fallback
+            result["archetype"] = "Minimal"
 
     return result
 
@@ -70,10 +65,6 @@ Respond ONLY with valid JSON in this exact format:
 # ── Constraint extractor ─────────────────────────────────────────────────────
 
 def extract_constraints(brand_brief: str, archetype: str) -> list:
-    """
-    Pulls explicit and implicit design constraints from the brand brief.
-    Returns a list of constraint strings.
-    """
     prompt = f"""You are a brand design expert. Given the brand brief and its archetype, 
 extract all design constraints — both explicit (directly stated) and implicit (reasonably implied).
 
@@ -110,23 +101,15 @@ If no constraints are found, return {{"constraints": []}}."""
     return result.get("constraints", [])
 
 
-# ── Planner Agent Node (LangGraph node function) ──────────────────────────────
+# ── Planner Agent Node ────────────────────────────────────────────────────────
 
 def planner_agent(state: BrandMindState) -> BrandMindState:
-    """
-    LangGraph node for the Planner Agent.
-    Reads: brand_brief, clip_features
-    Writes: archetype, archetype_rationale, design_constraints, status
-    """
     print("\n[Planner] Starting brand archetype classification...")
 
     brand_brief = state["brand_brief"]
 
-    # convert CLIP features to a text summary if present
     clip_context = ""
     if state.get("clip_features"):
-        # in real impl, we'd do nearest-neighbor lookup against archetype embeddings
-        # for now, just flag that visual context was provided
         clip_context = "Visual brand assets were uploaded (logo/mood board). Incorporate visual tone."
 
     # step 1: classify archetype
@@ -136,10 +119,10 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print(f"[Planner] Archetype: {archetype}")
     print(f"[Planner] Rationale: {rationale}")
 
-     # step 2: extract design constraints
-     constraints = extract_constraints(brand_brief, archetype)
+    # step 2: extract design constraints
+    constraints = extract_constraints(brand_brief, archetype)
 
-     # step 3: force-inject literal constraints from brief  ← 新加的
+    # step 3: force-inject literal constraints from brief
     brief_lower = brand_brief.lower()
     forced = []
     if "wcag" in brief_lower or "accessible" in brief_lower:
@@ -162,7 +145,7 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
         if _norm(c) not in seen:
             seen.add(_norm(c))
             deduped.append(c)
-            constraints = deduped
+    constraints = deduped
 
     for f in forced:
         if _norm(f) not in {_norm(c) for c in constraints}:
@@ -170,7 +153,7 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
 
     print(f"[Planner] Extracted {len(constraints)} constraints:")
     for c in constraints:
-         print(f"  • {c}")
+        print(f"  • {c}")
 
     state = initialise_weights(state)
 
@@ -186,8 +169,6 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
         "revision_history": [],
     }
 
-
-# ── Quick test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     test_brief = """
@@ -207,6 +188,7 @@ if __name__ == "__main__":
         "draft_brand_kit": None,
         "qc_feedback": None,
         "qc_scores": None,
+        "heuristic_weights": None,
         "iteration_count": 0,
         "status": "planning",
         "revision_history": [],
@@ -214,9 +196,5 @@ if __name__ == "__main__":
     }
 
     output_state = planner_agent(initial_state)
-
-    print("\n── Final Planner Output ──")
-    print(f"Archetype:    {output_state['archetype']}")
-    print(f"Rationale:    {output_state['archetype_rationale']}")
-    print(f"Constraints:  {output_state['design_constraints']}")
-    print(f"Status:       {output_state['status']}")
+    print(f"\nArchetype:   {output_state['archetype']}")
+    print(f"Constraints: {output_state['design_constraints']}")
