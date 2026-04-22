@@ -22,6 +22,12 @@ class BrandMindState(TypedDict):
     qc_feedback: Optional[str]          # revision instructions if kit fails QC
     qc_scores: Optional[dict]           # wcag ratio, coherence score, etc.
 
+    # --- self-improving heuristic weights ---
+    # Maps rule_id -> float weight (default 1.0 for all rules).
+    # Initialised by initialise_weights() in planner_agent.
+    # Updated by update_heuristic_weights() in qc_agent after every iteration.
+    heuristic_weights: Optional[dict]
+    
     # --- pipeline control ---
     iteration_count: int                # current revision loop count (max 3)
     status: Optional[str]               # "planning" | "generating" | "reviewing" | "approved" | "failed"
