@@ -573,7 +573,7 @@ def qc_agent(state: BrandMindState) -> BrandMindState:
 
     if approved:
         print("[QC] Draft approved.")
-        state = update_heuristic_weights(state, approved=True)
+        state = update_heuristic_weights(state)
         return {
             **state,
             "status": "approved",
@@ -591,7 +591,7 @@ def qc_agent(state: BrandMindState) -> BrandMindState:
             "Max iterations reached. Returning the best-scoring draft collected so far."
         )
         print("[QC] Max iterations reached. Returning best available draft.")
-        state = update_heuristic_weights(state, approved=False)
+        state = update_heuristic_weights(state)
         return {
             **state,
             "status": "failed",
@@ -603,7 +603,7 @@ def qc_agent(state: BrandMindState) -> BrandMindState:
         }
 
     print("[QC] Draft failed. Sending revision feedback to Generator.")
-    state = update_heuristic_weights(state, approved=False)
+    
     return {
         **state,
         "status": "generating",
