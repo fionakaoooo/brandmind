@@ -1,4 +1,4 @@
-
+%%writefile /content/brandmind/tools/color_retrieve.py
 from __future__ import annotations
 
 import os
@@ -101,6 +101,22 @@ def _to_binary(val: Any) -> int:
 def _hex_to_rgb(hex_code: str) -> Tuple[int, int, int]:
     hex_code = str(hex_code).strip().lstrip("#")
     return tuple(int(hex_code[i:i+2], 16) for i in (0, 2, 4))
+
+
+def _relative_luminance(hex_code: str) -> float:
+    rgb = _hex_to_rgb(hex_code)
+    def channel(c):
+        c = c / 255.0
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = [channel(c) for c in rgb]
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _contrast_ratio(hex1: str, hex2: str) -> float:
+    l1 = _relative_luminance(hex1)
+    l2 = _relative_luminance(hex2)
+    lighter, darker = max(l1, l2), min(l1, l2)
+    return (lighter + 0.05) / (darker + 0.05)
 
 
 def _rgb_to_hsv_scaled(rgb: Tuple[int, int, int]) -> Tuple[float, float, float]:
@@ -209,12 +225,19 @@ def _constraint_penalty(
     return penalty
 
 
-def _palette_overlaps_excluded(hex_codes: List[str], excluded: set) -> bool:
-    if not excluded:
-        return False
-    normalized = {h.upper().strip().lstrip("#") for h in hex_codes}
-    overlap = sum(1 for h in normalized if h in excluded)
-    return overlap >= 2
+def _wcag_bonus(hex_codes: List[str]) -> float:
+    """Reward palettes that have high internal contrast between colors."""
+    valid = [h for h in hex_codes if HEX_RE.match(str(h).strip())]
+    bonus = 0.0
+    for i in range(len(valid)):
+        for j in range(i + 1, len(valid)):
+            try:
+                ratio = _contrast_ratio(valid[i], valid[j])
+                if ratio >= 4.5:
+                    bonus += 0.3
+            except Exception:
+                pass
+    return bonus
 
 
 def color_retrieve(
@@ -228,7 +251,6 @@ def color_retrieve(
     style_keywords = style_keywords or []
     constraints = constraints or []
 
-    # normalise excluded_hex
     excluded_set: set = set()
     if excluded_hex:
         for h in excluded_hex:
@@ -242,8 +264,7 @@ def color_retrieve(
 
     if len(hex_cols) < 5:
         raise ValueError(
-            "Could not detect five hex color columns in the palette dataset. "
-            "Please preprocess the CSV into a stable format."
+            "Could not detect five hex color columns in the palette dataset."
         )
 
     requested_terms = {_normalize_col(x) for x in (emotions + style_keywords)}
@@ -264,15 +285,14 @@ def color_retrieve(
 
         brightness_gap = _distance(stats["avg_brightness"], emoset_profile["brightness_target"])
         colorfulness_gap = _distance(stats["avg_colorfulness"], emoset_profile["colorfulness_target"])
-
-        emoset_alignment_score = max(
-            0.0,
-            2.0 - (brightness_gap + colorfulness_gap) * 2.5
-        )
+        emoset_alignment_score = max(0.0, 2.0 - (brightness_gap + colorfulness_gap) * 2.5)
 
         penalty = _constraint_penalty(hex_codes=hex_codes, stats=stats, constraints=constraints)
 
-        total_score = base_score + industry_score + emoset_alignment_score - (penalty * 2.0)
+        # WCAG contrast bonus
+        wcag_score = _wcag_bonus(hex_codes)
+
+        total_score = base_score + industry_score + emoset_alignment_score + wcag_score - (penalty * 2.0)
 
         constraint_text = " ".join(constraints).lower()
         if "avoid harsh colors" in constraint_text and penalty >= 2.5:
@@ -285,6 +305,7 @@ def color_retrieve(
             "available_labels": sorted(row_labels),
             "emotion_score": round(base_score, 3),
             "industry_bonus": round(industry_score, 3),
+            "wcag_bonus": round(wcag_score, 3),
             "emoset_alignment": {
                 "brightness_target": round(emoset_profile["brightness_target"], 3),
                 "colorfulness_target": round(emoset_profile["colorfulness_target"], 3),
@@ -298,7 +319,7 @@ def color_retrieve(
 
     scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
 
-    # ── Penalise palettes overlapping with previous failed palette ────────────
+    # Penalise palettes overlapping with previous failed palette
     if excluded_set:
         for row in scored_rows:
             normalized = {h.upper().strip().lstrip("#") for h in row["hex_codes"]}
@@ -312,12 +333,11 @@ def color_retrieve(
     best = top[0] if top else {}
 
     rationale = (
-        f"Retrieved palettes by matching requested emotions/styles {sorted(requested_terms)} "
-        f"against the branding palette labels, reranked using EmoSet-derived "
-        f"brightness/colorfulness targets for {emotions}, and applied constraint penalties."
+        f"Retrieved palettes matching {sorted(requested_terms)}, "
+        f"reranked using EmoSet targets and WCAG contrast bonus."
     )
 
-    # ── Add WCAG anchor colors ────────────────────────────────────────────────
+    # Add WCAG anchor colors
     wcag_anchors = ["#FFFFFF", "#000000", "#F5F5F5", "#1A1A1A", "#212121", "#FAFAFA"]
     if best and "hex_codes" in best:
         for anchor in wcag_anchors:
