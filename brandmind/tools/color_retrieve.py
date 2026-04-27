@@ -359,15 +359,8 @@ def color_retrieve(
     )
 
     # Add WCAG anchor pairs — guarantees high-contrast pairs exist in palette
-    if best and "hex_codes" in best:
-        for anchor in WCAG_ANCHOR_PAIRS:
-            if anchor not in best["hex_codes"]:
-                best["hex_codes"].append(anchor)
-    for p in top:
-        if "hex_codes" in p:
-            for anchor in WCAG_ANCHOR_PAIRS:
-                if anchor not in p["hex_codes"]:
-                    p["hex_codes"].append(anchor)
+    if best:
+    best["wcag_anchors"] = WCAG_ANCHOR_PAIRS
 
     return {
         "query": {
