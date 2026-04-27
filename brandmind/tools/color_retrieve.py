@@ -346,7 +346,7 @@ def color_retrieve(
             normalized = {h.upper().strip().lstrip("#") for h in row["hex_codes"]}
             overlap = sum(1 for h in normalized if h in excluded_set)
             if overlap >= 1:
-                row["total_score"] -= overlap * 5.0
+                row["total_score"] -= overlap * 15.0
         scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
         print(f"[ColorRetrieve] Applied exclusion penalty for {len(excluded_set)} colors from previous palette.")
 
