@@ -1,3 +1,4 @@
+
 """
 Agent 2: Design Generator Agent
 """
@@ -17,12 +18,11 @@ from tools.heuristic_search import heuristic_search
 
 
 client = OpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
+    api_key=os.environ.get("OPENAI_API_KEY")
 )
 
 ARCHETYPE_FALLBACK_PALETTES = {
-    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
+    "corporate": ["#0D1117", "#FFFFFF", "#161B22", "#58A6FF", "#F0F6FC"],
     "tech":      ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
     "minimal":   ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
     "organic":   ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
@@ -98,7 +98,7 @@ Rules:
 
     try:
         resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="gpt-4o",
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
             response_format={"type": "json_object"},
