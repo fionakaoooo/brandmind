@@ -1,10 +1,5 @@
 """
 Agent 2: Design Generator Agent
-- Reads archetype + constraints from shared state
-- Infers design intent (emotion, industry, style, tone)
-- Calls font_lookup(), color_retrieve(), heuristic_search()
-- Assembles a draft brand kit
-- Writes result back into shared LangGraph state
 """
 
 from __future__ import annotations
@@ -26,6 +21,19 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
+ARCHETYPE_FALLBACK_PALETTES = {
+    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
+    "tech":      ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
+    "minimal":   ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
+    "organic":   ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
+    "luxury":    ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
+    "playful":   ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
+    "bold":      ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
+    "artisan":   ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
+    "heritage":  ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
+    "youthful":  ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
+}
+
 
 def _safe_json_loads(text: str) -> Dict[str, Any]:
     try:
@@ -38,13 +46,21 @@ def infer_design_spec(
     brand_brief: str,
     archetype: str,
     constraints: List[str],
-    clip_context: str = ""
+    clip_context: str = "",
+    qc_feedback: str = "",
 ) -> Dict[str, Any]:
-    """
-    Convert free-form brief into structured design intent for downstream tools.
-    """
+
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
+    feedback_section = (
+        f"""
+REVISION MODE - You MUST address all of the following QC failures.
+Each item below is a constraint that the previous draft FAILED.
+Your output spec must directly fix every listed issue:
+{qc_feedback}
+"""
+        if qc_feedback else ""
+    )
 
     prompt = f"""
 You are a senior brand design strategist.
@@ -59,8 +75,7 @@ Brand brief:
 
 Constraints:
 {constraint_text}
-{clip_section}
-
+{clip_section}{feedback_section}
 Return ONLY valid JSON in this schema:
 {{
   "industry": "<one short phrase>",
@@ -78,16 +93,21 @@ Rules:
 - Use 3 primary emotions max.
 - font_style should be usable for font retrieval, e.g. "modern sans serif", "high contrast serif", "rounded friendly sans".
 - brand_attributes should be concise because they will be used for heuristic search.
+- If QC feedback is provided above, adjust your spec to directly address those issues.
 """
 
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-        response_format={"type": "json_object"},
-    )
-
-    spec = _safe_json_loads(resp.choices[0].message.content)
+    try:
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            response_format={"type": "json_object"},
+        )
+        spec = _safe_json_loads(resp.choices[0].message.content)
+        print(f"[Generator] infer_design_spec OK: industry={spec.get('industry')}")
+    except Exception as exc:
+        print(f"[Generator] infer_design_spec FAILED: {exc}")
+        spec = {}
 
     return {
         "industry": spec.get("industry", "general"),
@@ -105,11 +125,6 @@ Rules:
 
 
 def choose_font_pair(font_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Heuristic font pairing:
-    - Prefer one display font + one text font
-    - Avoid pairing two overly similar top picks if possible
-    """
     if not font_candidates:
         return {
             "headline_font": None,
@@ -146,9 +161,6 @@ def assemble_draft_brand_kit(
     heuristics: List[Dict[str, Any]],
     constraints: List[str],
 ) -> Dict[str, Any]:
-    """
-    Final structured draft kit written to state.
-    """
     palette = palette_result.get("best_palette", {})
     rules = [h.get("rule") for h in heuristics if h.get("rule")]
 
@@ -191,39 +203,16 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     archetype = state["archetype"]
     constraints = state.get("design_constraints", [])
     clip_context = state.get("clip_context", "")
-    qc_feedback = state.get("qc_feedback") or ""
+    qc_feedback = state.get("qc_feedback", "")
 
-    # ── Build feedback-aware constraints ────────────────────────────────────
-    feedback_constraints = []
-    if qc_feedback:
-        if "wcag" in qc_feedback.lower() or "accessibility" in qc_feedback.lower():
-            feedback_constraints.append(
-                "CRITICAL: previous palette failed WCAG AA. "
-                "You MUST select a palette with higher contrast. "
-                "Include at least one very dark color (#1A1A1A or similar) "
-                "and one very light color (#F5F5F5 or similar)."
-            )
-        if "warm" in qc_feedback.lower() or "earthy" in qc_feedback.lower():
-            feedback_constraints.append(
-                "CRITICAL: previous palette contained warm/earthy tones which violate constraints. "
-                "Select only cool-toned colors (blues, greys, cyans)."
-            )
-        if "constraint" in qc_feedback.lower():
-            feedback_constraints.append(
-                f"Previous QC feedback to address: {qc_feedback[:300]}"
-            )
-
-    merged_constraints = constraints + feedback_constraints[:1]
-
-    # ── Infer design spec ────────────────────────────────────────────────────
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
-        constraints=merged_constraints,
+        constraints=constraints,
         clip_context=clip_context,
+        qc_feedback=qc_feedback,
     )
 
-    # ── Font lookup ──────────────────────────────────────────────────────────
     font_candidates = font_lookup(
         archetype=archetype,
         style=design_spec["font_style"],
@@ -231,41 +220,43 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     )
     font_pair = choose_font_pair(font_candidates)
 
-    # ── Build excluded_hex from previous failed palette ──────────────────────
-    excluded_hex = []
+    excluded_hex: List[str] = []
     if qc_feedback and state.get("draft_brand_kit"):
-        prev_palette = (
-            state["draft_brand_kit"]
-            .get("color_palette", {})
-            .get("hex_codes", [])
-        )
-        wcag_score = (
-            state.get("qc_scores", {})
-            .get("wcag", {})
-            .get("pass_rate", 1.0)
-        )
-        if wcag_score < 0.5 and prev_palette:
-            excluded_hex = prev_palette
-            print(f"[Generator] Excluding previous palette (WCAG {wcag_score:.2f}): {excluded_hex}")
+        prev_palette = state["draft_brand_kit"].get("color_palette", {})
+        excluded_hex = prev_palette.get("hex_codes", [])
+    print(f"[Generator] Excluding {len(excluded_hex)} hex codes from previous draft.")
 
-    # ── Color retrieval ──────────────────────────────────────────────────────
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
         style_keywords=design_spec["style_keywords"],
-        constraints=merged_constraints,
+        constraints=constraints,
         top_k=5,
         excluded_hex=excluded_hex,
     )
 
-    # ── Heuristic search ─────────────────────────────────────────────────────
+    best = palette_result.get("best_palette", {})
+    print(f"[Generator] Best palette score={best.get('total_score', 0):.2f}, emotion_score={best.get('emotion_score', 0):.2f}")
+    if best.get("total_score", 0) < 3.0 or (
+        archetype.lower() in ARCHETYPE_FALLBACK_PALETTES
+        and best.get("emotion_score", 0) == 0.0
+    ):
+        fallback_hex = ARCHETYPE_FALLBACK_PALETTES.get(
+            archetype.lower(),
+            ["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"]
+        )
+        print(f"[Generator] Low-quality palette detected, using archetype fallback: {fallback_hex}")
+        palette_result["best_palette"] = {
+            **best,
+            "hex_codes": fallback_hex,
+            "palette_name": f"{archetype}_archetype_fallback",
+            "palette_rationale": f"Archetype-safe fallback palette for {archetype}.",
+        }
+
     heuristics: List[Dict[str, Any]] = []
     for attr in design_spec["brand_attributes"]:
-        heuristics.extend(
-            heuristic_search(attr, weights=state.get("heuristic_weights"))
-        )
+        heuristics.extend(heuristic_search(attr))
 
-    # de-duplicate heuristics by rule text
     seen = set()
     deduped_heuristics = []
     for item in heuristics:
@@ -274,19 +265,14 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             seen.add(rule)
             deduped_heuristics.append(item)
 
-    # ── Assemble draft kit ───────────────────────────────────────────────────
     draft_brand_kit = assemble_draft_brand_kit(
         archetype=archetype,
         design_spec=design_spec,
         font_pair=font_pair,
         palette_result=palette_result,
         heuristics=deduped_heuristics[:6],
-        constraints=merged_constraints,
+        constraints=constraints,
     )
-
-    state["used_heuristic_rule_ids"] = [
-    h.get("id") for h in deduped_heuristics[:6] if h.get("id")
-]
 
     state["design_spec"] = design_spec
     state["draft_brand_kit"] = draft_brand_kit
