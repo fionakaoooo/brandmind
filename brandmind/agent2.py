@@ -48,7 +48,12 @@ def infer_design_spec(
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
     feedback_section = (                                     
-        f"\nPrevious QC feedback to address in this revision:\n{qc_feedback}\n"
+        f"""
+        REVISION MODE - You MUST address all of the following QC failures.
+Each item below is a constraint that the previous draft FAILED.
+Your output spec must directly fix every listed issue:
+{qc_feedback}
+"""
         if qc_feedback else ""
     )
 
