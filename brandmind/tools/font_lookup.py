@@ -13,8 +13,7 @@ def _get_google_fonts_api_key() -> str:
         os.environ.get("GOOGLE_FONTS_API_KEY", "").strip()
         or os.environ.get("GOOGLE_FONTS_KEY", "").strip()
     )
-
-# 定义基于品牌原型 (Archetype) 的默认字体类别偏好
+    
 # Google Fonts 的类别包括: "sans-serif", "serif", "display", "handwriting", "monospace"
 ARCHETYPE_CATEGORY_MAP = {
     "luxury": ["serif", "sans-serif"],
@@ -25,7 +24,7 @@ ARCHETYPE_CATEGORY_MAP = {
     "organic": ["handwriting", "serif", "sans-serif"],
     "tech": ["sans-serif", "monospace"],
     "artisan": ["serif", "handwriting"],
-    "heritage": ["serif"],
+    "heritage": ["serif", "display"],
     "youthful": ["display", "sans-serif"],
     "neutral": ["sans-serif", "serif"] # 默认后备
 }
