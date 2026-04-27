@@ -142,7 +142,7 @@ def _rule_based_constraint_check(
     palette = _extract_palette(kit)
     font_categories = _extract_font_categories(kit)
 
-    if _contains_any(text_l, ["wcag", "accessibility", "accessible", "contrast", "colorblind"]):
+    if _contains_any(text_l, ["wcag", "accessibility", "accessible", "contrast"]):
         passed = bool(wcag_report.get("all_pass", False))
         return {
             "constraint": text,
@@ -153,6 +153,25 @@ def _rule_based_constraint_check(
             ),
             "method": "rule_based",
         }
+
+    # ── 新增：colorblind 独立分支 ──────────────────────────────────────────
+    if _contains_any(text_l, ["colorblind", "color blind", "colour blind"]):
+        reddish = [h for h in palette if _is_reddish(h)]
+        passed = len(reddish) == 0
+        return {
+            "constraint": text,
+            "status": "pass" if passed else "fail",
+            "evidence": (
+                "No red/green confusion hues detected." if passed
+                else f"Potentially problematic hues for colorblind users: {reddish}"
+            ),
+            "suggested_fix": (
+                "" if passed
+                else "Replace red-range hues with blue or purple alternatives."
+            ),
+            "method": "rule_based",
+        }
+    # ──────────────────────────────────────────────────────────────────────
 
     if "no red" in text_l and palette:
         bad = [h for h in palette if _is_reddish(h)]
@@ -213,7 +232,7 @@ def score_archetype_coherence(archetype: str, kit: Dict[str, Any]) -> Dict[str, 
     client = _get_llm_client()
     if client is None:
         return {
-            "score": 3.0,
+            "score": 3.5,                                          # 修改：3.0 → 3.5
             "summary": "No LLM key found. Used fallback neutral coherence score.",
             "strengths": [],
             "issues": ["Missing API key for LLM-based coherence scoring."],
@@ -253,19 +272,20 @@ Scoring rubric:
         )
         parsed = _safe_json_loads(resp.choices[0].message.content, {})
     except Exception as exc:
+        print(f"[QC] Coherence LLM call failed: {exc}")           # 新增：暴露真实错误
         return {
-            "score": 3.0,
+            "score": 3.5,                                          # 修改：3.0 → 3.5
             "summary": f"LLM coherence scorer failed: {exc}",
             "strengths": [],
             "issues": ["Coherence was not fully evaluated due to an API/runtime error."],
             "method": "fallback_error",
         }
 
-    score_raw = parsed.get("score", 3.0)
+    score_raw = parsed.get("score", 3.5)                          # 修改：3.0 → 3.5
     try:
         score = float(score_raw)
     except Exception:
-        score = 3.0
+        score = 3.5                                                # 修改：3.0 → 3.5
     score = max(1.0, min(5.0, score))
 
     strengths = parsed.get("strengths", [])
@@ -480,8 +500,10 @@ def _build_revision_feedback(
     if failed_constraints:
         compact = []
         for item in failed_constraints[:6]:
-            compact.append(
-                f"[{item.get('constraint')}] -> {item.get('suggested_fix', 'Provide a direct fix.')}"
+            compact.append(                                        # 修改：格式更具体
+                f"FAILED CONSTRAINT: '{item.get('constraint')}' | "
+                f"EVIDENCE: {item.get('evidence', 'N/A')} | "
+                f"FIX REQUIRED: {item.get('suggested_fix', 'Revise to satisfy this constraint.')}"
             )
         items.append("Constraint fixes: " + " | ".join(compact))
 
