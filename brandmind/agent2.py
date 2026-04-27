@@ -23,7 +23,7 @@ client = OpenAI(
 
 
 ARCHETYPE_FALLBACK_PALETTES = {
-    "corporate": ["#1B2A4A", "#2E5090", "#FFFFFF", "#F4F6F9", "#4A90D9"],
+    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
     "tech":      ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
     "minimal":   ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
     "organic":   ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
