@@ -35,8 +35,7 @@ def _get_llm_client() -> Optional[OpenAI]:
     groq_key = os.environ.get("GROQ_API_KEY", "").strip()
     openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
 
-    if groq_key:
-        return OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+    
     if openai_key:
         return OpenAI(api_key=openai_key)
     return None
@@ -49,9 +48,7 @@ def _coherence_model_name() -> str:
 
 
 def _constraint_model_name() -> str:
-    if os.environ.get("GROQ_API_KEY", "").strip():
-        return os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
-    return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+    return "gpt-4o"
 
 
 def _extract_constraints(state: Dict[str, Any], kit: Dict[str, Any]) -> List[str]:
