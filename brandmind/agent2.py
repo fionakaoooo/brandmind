@@ -38,7 +38,8 @@ def infer_design_spec(
     brand_brief: str,
     archetype: str,
     constraints: List[str],
-    clip_context: str = ""
+    clip_context: str = "",
+    qc_feedback: str = "",          
 ) -> Dict[str, Any]:
     """
     Convert free-form brief into structured design intent for downstream tools.
@@ -46,6 +47,10 @@ def infer_design_spec(
 
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
+    feedback_section = (                                     
+        f"\nPrevious QC feedback to address in this revision:\n{qc_feedback}\n"
+        if qc_feedback else ""
+    )
 
     prompt = f"""
 You are a senior brand design strategist.
@@ -60,8 +65,7 @@ Brand brief:
 
 Constraints:
 {constraint_text}
-{clip_section}
-
+{clip_section}{feedback_section}
 Return ONLY valid JSON in this schema:
 {{
   "industry": "<one short phrase>",
@@ -79,6 +83,7 @@ Rules:
 - Use 3 primary emotions max.
 - font_style should be usable for font retrieval, e.g. "modern sans serif", "high contrast serif", "rounded friendly sans".
 - brand_attributes should be concise because they will be used for heuristic search.
+- If QC feedback is provided above, adjust your spec to directly address those issues.
 """
 
     resp = client.chat.completions.create(
@@ -195,12 +200,14 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     archetype = state["archetype"]
     constraints = state.get("design_constraints", [])
     clip_context = state.get("clip_context", "")
+    qc_feedback = state.get("qc_feedback", "")          # 新增：读取 QC 反馈
 
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
         constraints=constraints,
         clip_context=clip_context,
+        qc_feedback=qc_feedback,                        # 新增：传入 QC 反馈
     )
 
     font_candidates = font_lookup(
@@ -210,12 +217,19 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     )
     font_pair = choose_font_pair(font_candidates)
 
+    
+    excluded_hex: List[str] = []
+    if qc_feedback and state.get("draft_brand_kit"):
+        prev_palette = state["draft_brand_kit"].get("color_palette", {})
+        excluded_hex = prev_palette.get("hex_codes", [])
+
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
         style_keywords=design_spec["style_keywords"],
         constraints=constraints,
         top_k=5,
+        excluded_hex=excluded_hex,                    
     )
 
     heuristics: List[Dict[str, Any]] = []
