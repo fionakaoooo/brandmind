@@ -21,7 +21,6 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1"
 )
 
-
 ARCHETYPE_FALLBACK_PALETTES = {
     "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
     "tech":      ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
@@ -97,14 +96,18 @@ Rules:
 - If QC feedback is provided above, adjust your spec to directly address those issues.
 """
 
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2,
-        response_format={"type": "json_object"},
-    )
-
-    spec = _safe_json_loads(resp.choices[0].message.content)
+    try:
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
+            response_format={"type": "json_object"},
+        )
+        spec = _safe_json_loads(resp.choices[0].message.content)
+        print(f"[Generator] infer_design_spec OK: industry={spec.get('industry')}")
+    except Exception as exc:
+        print(f"[Generator] infer_design_spec FAILED: {exc}")
+        spec = {}
 
     return {
         "industry": spec.get("industry", "general"),
@@ -232,8 +235,8 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         excluded_hex=excluded_hex,
     )
 
-    # 新增：调色板质量检查，低质量时 fallback 到原型安全调色板
     best = palette_result.get("best_palette", {})
+    print(f"[Generator] Best palette score={best.get('total_score', 0):.2f}, emotion_score={best.get('emotion_score', 0):.2f}")
     if best.get("total_score", 0) < 3.0 or (
         archetype.lower() in ARCHETYPE_FALLBACK_PALETTES
         and best.get("emotion_score", 0) == 0.0
@@ -242,7 +245,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             archetype.lower(),
             ["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"]
         )
-        print(f"[Generator] Low-quality palette detected (score={best.get('total_score', 0):.2f}), using archetype fallback: {fallback_hex}")
+        print(f"[Generator] Low-quality palette detected, using archetype fallback: {fallback_hex}")
         palette_result["best_palette"] = {
             **best,
             "hex_codes": fallback_hex,
