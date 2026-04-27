@@ -44,7 +44,7 @@ Respond ONLY with valid JSON in this exact format:
 }}"""
 
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="gpt-4o",
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         response_format={"type": "json_object"},
