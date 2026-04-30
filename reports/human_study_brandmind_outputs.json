@@ -1,0 +1,50 @@
+[
+  {
+    "id": "luxury_jewelry",
+    "archetype": "Luxury",
+    "status": "failed",
+    "iterations": 3,
+    "wcag": "12/42 pairs pass WCAG 2.1 AA",
+    "wcag_pass_rate": 0.286,
+    "coherence": 4.0,
+    "constraint_pass_rate": 0.429
+  },
+  {
+    "id": "childrens_education",
+    "archetype": "Playful",
+    "status": "failed",
+    "iterations": 3,
+    "wcag": "12/42 pairs pass WCAG 2.1 AA",
+    "wcag_pass_rate": 0.286,
+    "coherence": 4.2,
+    "constraint_pass_rate": 0.667
+  },
+  {
+    "id": "organic_coffee",
+    "archetype": "Organic",
+    "status": "failed",
+    "iterations": 3,
+    "wcag": "12/42 pairs pass WCAG 2.1 AA",
+    "wcag_pass_rate": 0.286,
+    "coherence": 4.0,
+    "constraint_pass_rate": 0.444,
+    "note": "iteration 2 showed improvement: WCAG 0.571, coherence 4.2, constraints 0.556"
+  },
+  {
+    "id": "legal_services",
+    "archetype": "Corporate",
+    "status": "interrupted",
+    "iterations": 1,
+    "wcag": "12/42 pairs pass WCAG 2.1 AA",
+    "wcag_pass_rate": 0.286,
+    "coherence": 4.0,
+    "constraint_pass_rate": 0.667,
+    "note": "interrupted by Groq rate limit on iteration 2"
+  },
+  {
+    "id": "fitness_startup",
+    "archetype": null,
+    "status": "not_run",
+    "note": "not run due to Groq rate limit"
+  }
+]
