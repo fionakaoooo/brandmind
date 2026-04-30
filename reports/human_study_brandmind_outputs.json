@@ -33,18 +33,43 @@
   {
     "id": "legal_services",
     "archetype": "Corporate",
-    "status": "interrupted",
-    "iterations": 1,
-    "wcag": "12/42 pairs pass WCAG 2.1 AA",
-    "wcag_pass_rate": 0.286,
-    "coherence": 4.0,
-    "constraint_pass_rate": 0.667,
-    "note": "interrupted by Groq rate limit on iteration 2"
+    "status": "failed",
+    "iterations": 3,
+    "wcag": "6/20 pairs pass WCAG 2.1 AA (ratio >= 4.5)",
+    "wcag_pass_rate": 0.3,
+    "coherence": 3.5,
+    "constraint_pass_rate": 0.375,
+    "fonts": {
+      "headline": "Montserrat",
+      "body": "Playfair Display"
+    },
+    "palette": [
+      "#120251",
+      "#13cda1",
+      "#17ae55",
+      "#a2e1ff",
+      "#1e9109"
+    ]
   },
   {
     "id": "fitness_startup",
-    "archetype": null,
-    "status": "not_run",
-    "note": "not run due to Groq rate limit"
+    "archetype": "Bold",
+    "status": "failed",
+    "iterations": 3,
+    "wcag": "10/20 pairs pass WCAG 2.1 AA (ratio >= 4.5)",
+    "wcag_pass_rate": 0.5,
+    "coherence": 3.0,
+    "constraint_pass_rate": 0.444,
+    "fonts": {
+      "headline": "Bebas Neue",
+      "body": "Montserrat"
+    },
+    "palette": [
+      "#5b5f73",
+      "#1b056d",
+      "#e7df80",
+      "#00f0c4",
+      "#5d33dc"
+    ]
   }
 ]
