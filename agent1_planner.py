@@ -13,10 +13,33 @@ from openai import OpenAI
 from state import BrandMindState, ARCHETYPES
 from tools.heuristic_search import initialise_weights
 
-client = OpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
-)
+
+def _resolve_provider() -> str:
+    explicit = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if explicit in ("openai", "groq"):
+        return explicit
+    if os.environ.get("GROQ_API_KEY", "").strip():
+        return "groq"
+    return "openai"
+
+
+def _get_client() -> OpenAI:
+    if _resolve_provider() == "groq":
+        return OpenAI(
+            api_key=os.environ.get("GROQ_API_KEY"),
+            base_url="https://api.groq.com/openai/v1",
+        )
+    base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
+    return OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=base_url)
+
+
+def _get_model() -> str:
+    if _resolve_provider() == "groq":
+        return os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+    return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+client = _get_client()
 
 # ── Tool: archetype_classifier ──────────────────────────────────────────────
 
@@ -43,7 +66,7 @@ Respond ONLY with valid JSON in this exact format:
 }}"""
 
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=_get_model(),
         messages=[{"role": "user", "content": prompt}],
         temperature=0.3,
         response_format={"type": "json_object"},
@@ -91,7 +114,7 @@ Respond ONLY with valid JSON:
 If no constraints are found, return {{"constraints": []}}."""
 
     resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model=_get_model(),
         messages=[{"role": "user", "content": prompt}],
         temperature=0.2,
         response_format={"type": "json_object"},

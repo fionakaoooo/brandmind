@@ -1,0 +1,4253 @@
+{
+  "cases_count": 6,
+  "summary": {
+    "brandmind_full": {
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.944,
+      "wcag_pass_rate": 0.833,
+      "archetype_coherence_score_mean": 4.333,
+      "avg_runtime_sec": 51.23
+    },
+    "baseline_zero_shot_gpt4o": {
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.944,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.45,
+      "avg_runtime_sec": 4.575
+    },
+    "baseline_rag_only": {
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.833,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.0,
+      "avg_runtime_sec": 3.988
+    },
+    "baseline_fontjoy": {
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.222,
+      "wcag_pass_rate": 0.0,
+      "archetype_coherence_score_mean": 2.4,
+      "avg_runtime_sec": 1.936
+    }
+  },
+  "ranking_by_metrics": [
+    {
+      "system": "baseline_zero_shot_gpt4o",
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.944,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.45,
+      "avg_runtime_sec": 4.575
+    },
+    {
+      "system": "brandmind_full",
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.944,
+      "wcag_pass_rate": 0.833,
+      "archetype_coherence_score_mean": 4.333,
+      "avg_runtime_sec": 51.23
+    },
+    {
+      "system": "baseline_rag_only",
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.833,
+      "wcag_pass_rate": 1.0,
+      "archetype_coherence_score_mean": 4.0,
+      "avg_runtime_sec": 3.988
+    },
+    {
+      "system": "baseline_fontjoy",
+      "cases": 6,
+      "constraint_satisfaction_rate": 0.222,
+      "wcag_pass_rate": 0.0,
+      "archetype_coherence_score_mean": 2.4,
+      "avg_runtime_sec": 1.936
+    }
+  ],
+  "details": {
+    "brandmind_full": [
+      {
+        "case_id": "case_01_fintech_corporate",
+        "system": "brandmind_full",
+        "brief": "Nimbus Ledger is a B2B fintech platform for cross-border invoices. Brand identity should feel trustworthy, precise, and modern for enterprise finance teams.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 46.664,
+        "output": {
+          "archetype": "Corporate",
+          "kit": {
+            "archetype": "Corporate",
+            "industry": "B2B fintech",
+            "target_audience": "enterprise finance teams",
+            "primary_emotions": [
+              "trustworthy",
+              "precise",
+              "modern"
+            ],
+            "style_keywords": [
+              "corporate",
+              "professional",
+              "clean"
+            ],
+            "brand_attributes": [
+              "trustworthy",
+              "reliable",
+              "professional",
+              "established",
+              "authoritative",
+              "trustworthiness",
+              "precision",
+              "modernity"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "pairing_rationale": "Selected Roboto as the expressive/display face and Open Sans as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_646",
+              "hex_codes": [
+                "#392B1C",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ],
+              "matched_emotions": [
+                "modern"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 3.0,
+              "emoset_alignment": {
+                "brightness_target": 0.54,
+                "colorfulness_target": 0.519,
+                "palette_brightness": 0.499,
+                "palette_colorfulness": 0.516,
+                "alignment_score": 1.889
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['clean', 'corporate', 'modern', 'precise', 'professional', 'trustworthy'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['trustworthy', 'precise', 'modern'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce trustworthiness.",
+              "Keep the overall visual system consistent with the attribute 'trustworthiness'.",
+              "Use layout, typography, and color choices to reinforce precision.",
+              "Keep the overall visual system consistent with the attribute 'precision'.",
+              "Use layout, typography, and color choices to reinforce modernity.",
+              "Keep the overall visual system consistent with the attribute 'modernity'."
+            ],
+            "constraints_checked_later": [
+              "Ensure the design is WCAG compliant for accessibility.",
+              "Use a color palette that is colorblind-friendly.",
+              "Design should convey trustworthiness and precision.",
+              "Adopt a modern aesthetic suitable for enterprise finance teams.",
+              "Avoid overly playful or casual design elements.",
+              "Respect industry conventions for B2B fintech platforms.",
+              "Avoid using serif fonts to maintain a modern feel."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "trustworthy",
+                "reliable",
+                "professional",
+                "established",
+                "authoritative",
+                "formal",
+                "efficient"
+              ],
+              "palette_notes": "The palette should feel inclusive and professional, ensuring accessibility and colorblind-friendly design."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_646",
+                  "hex_codes": [
+                    "#391c1e",
+                    "#74c8d9",
+                    "#2b2e23",
+                    "#490e57",
+                    "#6c95e5"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "dreamy",
+                    "modern",
+                    "organic"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.499,
+                    "palette_colorfulness": 0.516,
+                    "alignment_score": 1.889
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 8.1,
+                    "min_ratio": 1.023
+                  },
+                  "penalty": 0.0,
+                  "total_score": 7.289
+                },
+                {
+                  "palette_name": "palette_567",
+                  "hex_codes": [
+                    "#3b3e74",
+                    "#38e9fc",
+                    "#82f0e0",
+                    "#235047",
+                    "#95fbf1"
+                  ],
+                  "matched_emotions": [
+                    "clean"
+                  ],
+                  "available_labels": [
+                    "clean",
+                    "fun",
+                    "playful"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.736,
+                    "palette_colorfulness": 0.539,
+                    "alignment_score": 1.459
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 8.155,
+                    "min_ratio": 1.086
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.859
+                },
+                {
+                  "palette_name": "palette_512",
+                  "hex_codes": [
+                    "#2a27b9",
+                    "#19d3ac",
+                    "#97d419",
+                    "#591a9d",
+                    "#3e4146"
+                  ],
+                  "matched_emotions": [
+                    "clean"
+                  ],
+                  "available_labels": [
+                    "clean",
+                    "joy",
+                    "luxurious"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.655,
+                    "palette_colorfulness": 0.7,
+                    "alignment_score": 1.26
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 5.732,
+                    "min_ratio": 1.005
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.66
+                },
+                {
+                  "palette_name": "palette_424",
+                  "hex_codes": [
+                    "#52ab30",
+                    "#20155f",
+                    "#75cb64",
+                    "#dda034",
+                    "#0df8cf"
+                  ],
+                  "matched_emotions": [
+                    "modern",
+                    "professional"
+                  ],
+                  "available_labels": [
+                    "calm",
+                    "modern",
+                    "professional"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.736,
+                    "palette_colorfulness": 0.744,
+                    "alignment_score": 0.95
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 11.504,
+                    "min_ratio": 1.145
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.55
+                },
+                {
+                  "palette_name": "palette_337",
+                  "hex_codes": [
+                    "#432e13",
+                    "#892c9f",
+                    "#e4d9f9",
+                    "#aaef96",
+                    "#bd9ec7"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "modern",
+                    "soft",
+                    "warm"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.716,
+                    "palette_colorfulness": 0.429,
+                    "alignment_score": 1.334
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 9.514,
+                    "min_ratio": 1.006
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.334
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce trustworthiness.",
+                  "id": "fallback_trustworthiness_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'trustworthiness'.",
+                  "id": "fallback_trustworthiness_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce precision.",
+                  "id": "fallback_precision_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'precision'.",
+                  "id": "fallback_precision_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce modernity.",
+                  "id": "fallback_modernity_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'modernity'.",
+                  "id": "fallback_modernity_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The font pairing of Roboto and Open Sans, both sans-serif, ensures clarity and readability, embodying the corporate archetype's emphasis on professionalism and efficiency. The color palette, with its blend of deep browns and blues, conveys a sense of reliability and authority, while the vibrant accents of teal and purple add a touch of modernity, reinforcing the brand's established yet forward-thinking nature. Together, these elements create a trustworthy and formal tone, aligning perfectly with the corporate identity."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_02_kids_playful",
+        "system": "brandmind_full",
+        "brief": "Pebble Pop is a toy subscription startup for kids age 6-10. The brand should feel playful and energetic while staying readable for parents.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 52.889,
+        "output": {
+          "archetype": "Playful",
+          "kit": {
+            "archetype": "Playful",
+            "industry": "Toy Subscription",
+            "target_audience": "Children 6-10 and Parents",
+            "primary_emotions": [
+              "playful",
+              "energetic",
+              "friendly"
+            ],
+            "style_keywords": [
+              "vibrant",
+              "engaging",
+              "fun"
+            ],
+            "brand_attributes": [
+              "energetic",
+              "joyful",
+              "lighthearted",
+              "spontaneous",
+              "fun",
+              "readable",
+              "accessible",
+              "culturally neutral"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "M PLUS Rounded 1c",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "300",
+                  "regular",
+                  "500",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "japanese",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 8.0
+              },
+              "body": {
+                "family": "Comfortaa",
+                "category": "display",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "pairing_rationale": "Selected M PLUS Rounded 1c as the expressive/display face and Comfortaa as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_567",
+              "hex_codes": [
+                "#3B3E74",
+                "#46BAC7",
+                "#82F0E0",
+                "#235047",
+                "#95FBF1"
+              ],
+              "matched_emotions": [
+                "fun",
+                "playful"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 6.0,
+              "emoset_alignment": {
+                "brightness_target": 0.537,
+                "colorfulness_target": 0.578,
+                "palette_brightness": 0.736,
+                "palette_colorfulness": 0.539,
+                "alignment_score": 1.405
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['energetic', 'engaging', 'friendly', 'fun', 'playful', 'vibrant'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['playful', 'energetic', 'friendly'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce readable.",
+              "Keep the overall visual system consistent with the attribute 'readable'.",
+              "Use layout, typography, and color choices to reinforce accessible.",
+              "Keep the overall visual system consistent with the attribute 'accessible'.",
+              "Use layout, typography, and color choices to reinforce culturally neutral.",
+              "Keep the overall visual system consistent with the attribute 'culturally neutral'."
+            ],
+            "constraints_checked_later": [
+              "Design must be playful and energetic to align with the brand archetype.",
+              "Typography should be easily readable for both children and parents, avoiding harsh fonts.",
+              "Color palette should be vibrant and appealing to children aged 6-10.",
+              "Design should be accessible and consider WCAG compliance for readability.",
+              "Avoid overly complex or sophisticated design elements that may not appeal to children.",
+              "Ensure that the design is culturally neutral and appropriate for a diverse audience.",
+              "Avoid using dark or muted colors that may not convey playfulness."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "energetic",
+                "joyful",
+                "lighthearted",
+                "spontaneous",
+                "fun",
+                "cheerful",
+                "lively",
+                "inviting"
+              ],
+              "palette_notes": "The palette should feel bright and lively, appealing to both children and parents."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "M PLUS Rounded 1c",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "300",
+                  "regular",
+                  "500",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "japanese",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 8.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_567",
+                  "hex_codes": [
+                    "#3b3e74",
+                    "#38e9fc",
+                    "#82f0e0",
+                    "#235047",
+                    "#95fbf1"
+                  ],
+                  "matched_emotions": [
+                    "fun",
+                    "playful"
+                  ],
+                  "available_labels": [
+                    "clean",
+                    "fun",
+                    "playful"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.537,
+                    "colorfulness_target": 0.578,
+                    "palette_brightness": 0.736,
+                    "palette_colorfulness": 0.539,
+                    "alignment_score": 1.405
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 8.155,
+                    "min_ratio": 1.086
+                  },
+                  "penalty": 0.0,
+                  "total_score": 9.805
+                },
+                {
+                  "palette_name": "palette_141",
+                  "hex_codes": [
+                    "#5b5f73",
+                    "#1b056d",
+                    "#e7df80",
+                    "#00f0c4",
+                    "#5d33dc"
+                  ],
+                  "matched_emotions": [
+                    "energetic",
+                    "vibrant"
+                  ],
+                  "available_labels": [
+                    "energetic",
+                    "soft",
+                    "vibrant"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.537,
+                    "colorfulness_target": 0.578,
+                    "palette_brightness": 0.718,
+                    "palette_colorfulness": 0.675,
+                    "alignment_score": 1.306
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 11.841,
+                    "min_ratio": 1.07
+                  },
+                  "penalty": 0.0,
+                  "total_score": 9.306
+                },
+                {
+                  "palette_name": "palette_687",
+                  "hex_codes": [
+                    "#1f962a",
+                    "#07703a",
+                    "#39968c",
+                    "#b8f8f1",
+                    "#03121c"
+                  ],
+                  "matched_emotions": [
+                    "playful",
+                    "vibrant"
+                  ],
+                  "available_labels": [
+                    "dramatic",
+                    "playful",
+                    "vibrant"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.537,
+                    "colorfulness_target": 0.578,
+                    "palette_brightness": 0.54,
+                    "palette_colorfulness": 0.7,
+                    "alignment_score": 1.689
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 16.019,
+                    "min_ratio": 1.085
+                  },
+                  "penalty": 0.0,
+                  "total_score": 7.289
+                },
+                {
+                  "palette_name": "palette_542",
+                  "hex_codes": [
+                    "#c5e7ae",
+                    "#031540",
+                    "#a1f235",
+                    "#bcc2a6",
+                    "#17369e"
+                  ],
+                  "matched_emotions": [
+                    "vibrant"
+                  ],
+                  "available_labels": [
+                    "elegant",
+                    "joy",
+                    "vibrant"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.537,
+                    "colorfulness_target": 0.578,
+                    "palette_brightness": 0.697,
+                    "palette_colorfulness": 0.596,
+                    "alignment_score": 1.556
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 13.007,
+                    "min_ratio": 1.01
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.956
+                },
+                {
+                  "palette_name": "palette_743",
+                  "hex_codes": [
+                    "#25e0ec",
+                    "#474c26",
+                    "#31946a",
+                    "#2014a3",
+                    "#98d617"
+                  ],
+                  "matched_emotions": [
+                    "energetic",
+                    "fun"
+                  ],
+                  "available_labels": [
+                    "bold",
+                    "energetic",
+                    "fun"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.537,
+                    "colorfulness_target": 0.578,
+                    "palette_brightness": 0.656,
+                    "palette_colorfulness": 0.756,
+                    "alignment_score": 1.256
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 7.662,
+                    "min_ratio": 1.082
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.856
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce readable.",
+                  "id": "fallback_readable_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'readable'.",
+                  "id": "fallback_readable_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce accessible.",
+                  "id": "fallback_accessible_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'accessible'.",
+                  "id": "fallback_accessible_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce culturally neutral.",
+                  "id": "fallback_culturally neutral_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'culturally neutral'.",
+                  "id": "fallback_culturally neutral_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The font pairing of M PLUS Rounded 1c and Comfortaa embodies the Playful archetype by combining rounded, approachable forms with a display style that adds a touch of whimsy, enhancing readability while inviting engagement. The vibrant color palette, featuring hues like '#46BAC7' and '#95FBF1', injects energy and spontaneity, creating a lively and cheerful visual experience. Together, these elements establish an inviting and joyful tone that resonates with the playful spirit of the brand."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.4,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_03_luxury_jewelry",
+        "system": "brandmind_full",
+        "brief": "Etoile Vault is a luxury jewelry house focused on heirloom craftsmanship. The style should feel premium, refined, and timeless.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 65.074,
+        "output": {
+          "archetype": "Luxury",
+          "kit": {
+            "archetype": "Luxury",
+            "industry": "Luxury Jewelry",
+            "target_audience": "High-end discerning clientele",
+            "primary_emotions": [
+              "elegant",
+              "refined",
+              "timeless"
+            ],
+            "style_keywords": [
+              "premium",
+              "heirloom",
+              "sophisticated"
+            ],
+            "brand_attributes": [
+              "premium",
+              "refined",
+              "timeless",
+              "exclusive",
+              "sophisticated",
+              "luxurious",
+              "craftsmanship",
+              "heritage"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "pairing_rationale": "Selected Playfair Display as the expressive/display face and Roboto Slab as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_356",
+              "hex_codes": [
+                "#C78746",
+                "#B04AA3",
+                "#CB8DBC",
+                "#71794A",
+                "#0E622E"
+              ],
+              "matched_emotions": [
+                "elegant",
+                "sophisticated"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 6.0,
+              "emoset_alignment": {
+                "brightness_target": 0.54,
+                "colorfulness_target": 0.519,
+                "palette_brightness": 0.667,
+                "palette_colorfulness": 0.577,
+                "alignment_score": 1.537
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['elegant', 'heirloom', 'premium', 'refined', 'sophisticated', 'timeless'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['elegant', 'refined', 'timeless'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce luxurious.",
+              "Keep the overall visual system consistent with the attribute 'luxurious'.",
+              "Use layout, typography, and color choices to reinforce craftsmanship.",
+              "Keep the overall visual system consistent with the attribute 'craftsmanship'.",
+              "Reference historical typographic forms without pastiche.",
+              "Use sepia, navy, or aged-paper tones for a sense of time."
+            ],
+            "constraints_checked_later": [
+              "Design must feel premium, refined, and timeless.",
+              "Use high-quality materials and finishes to convey luxury.",
+              "Avoid overly trendy or modern elements that could date the design.",
+              "Incorporate elements that suggest heirloom craftsmanship.",
+              "Ensure design aligns with luxury jewelry industry conventions.",
+              "Avoid colors that are not traditionally associated with luxury, such as overly bright or neon colors.",
+              "Typography should be elegant and sophisticated, likely favoring serif or classic sans-serif fonts.",
+              "Design should appeal to a high-end, discerning audience.",
+              "Consider cultural associations of luxury and refinement in design choices."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "premium",
+                "refined",
+                "timeless",
+                "exclusive",
+                "sophisticated",
+                "classic",
+                "prestigious"
+              ],
+              "palette_notes": "The palette should feel rich and understated, using classic colors associated with luxury such as deep golds, silvers, and rich jewel tones."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_356",
+                  "hex_codes": [
+                    "#fd4f3e",
+                    "#b04aa3",
+                    "#cb8dbc",
+                    "#71794a",
+                    "#0e622e"
+                  ],
+                  "matched_emotions": [
+                    "elegant",
+                    "sophisticated"
+                  ],
+                  "available_labels": [
+                    "calm",
+                    "elegant",
+                    "sophisticated"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.667,
+                    "palette_colorfulness": 0.577,
+                    "alignment_score": 1.537
+                  },
+                  "wcag_stats": {
+                    "pass_count": 0,
+                    "total_pairs": 10,
+                    "pass_rate": 0.0,
+                    "max_ratio": 2.879,
+                    "min_ratio": 1.042
+                  },
+                  "penalty": 1.2,
+                  "total_score": 5.137
+                },
+                {
+                  "palette_name": "palette_633",
+                  "hex_codes": [
+                    "#532a5a",
+                    "#20b5bc",
+                    "#9dafff",
+                    "#dfdfc9",
+                    "#a3f658"
+                  ],
+                  "matched_emotions": [
+                    "elegant"
+                  ],
+                  "available_labels": [
+                    "bold",
+                    "elegant",
+                    "friendly"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.786,
+                    "palette_colorfulness": 0.498,
+                    "alignment_score": 1.331
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 8.6,
+                    "min_ratio": 1.022
+                  },
+                  "penalty": 0.6,
+                  "total_score": 4.731
+                },
+                {
+                  "palette_name": "palette_225",
+                  "hex_codes": [
+                    "#bb5e72",
+                    "#713547",
+                    "#18268d",
+                    "#d6af81",
+                    "#8adbd4"
+                  ],
+                  "matched_emotions": [
+                    "sophisticated"
+                  ],
+                  "available_labels": [
+                    "friendly",
+                    "sophisticated",
+                    "vintage"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.685,
+                    "palette_colorfulness": 0.525,
+                    "alignment_score": 1.622
+                  },
+                  "wcag_stats": {
+                    "pass_count": 3,
+                    "total_pairs": 10,
+                    "pass_rate": 0.3,
+                    "max_ratio": 7.74,
+                    "min_ratio": 1.277
+                  },
+                  "penalty": 0.6,
+                  "total_score": 4.622
+                },
+                {
+                  "palette_name": "palette_703",
+                  "hex_codes": [
+                    "#a478b8",
+                    "#bf585c",
+                    "#fa8b9a",
+                    "#ab62cb",
+                    "#90e193"
+                  ],
+                  "matched_emotions": [
+                    "elegant"
+                  ],
+                  "available_labels": [
+                    "creative",
+                    "elegant",
+                    "professional"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.826,
+                    "palette_colorfulness": 0.442,
+                    "alignment_score": 1.091
+                  },
+                  "wcag_stats": {
+                    "pass_count": 0,
+                    "total_pairs": 10,
+                    "pass_rate": 0.0,
+                    "max_ratio": 2.807,
+                    "min_ratio": 1.115
+                  },
+                  "penalty": 0.0,
+                  "total_score": 4.091
+                },
+                {
+                  "palette_name": "palette_553",
+                  "hex_codes": [
+                    "#1eff2b",
+                    "#7f4472",
+                    "#734347",
+                    "#a582e4",
+                    "#c6acc6"
+                  ],
+                  "matched_emotions": [
+                    "sophisticated"
+                  ],
+                  "available_labels": [
+                    "clean",
+                    "sophisticated",
+                    "strong"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.54,
+                    "colorfulness_target": 0.519,
+                    "palette_brightness": 0.724,
+                    "palette_colorfulness": 0.465,
+                    "alignment_score": 1.404
+                  },
+                  "wcag_stats": {
+                    "pass_count": 2,
+                    "total_pairs": 10,
+                    "pass_rate": 0.2,
+                    "max_ratio": 5.869,
+                    "min_ratio": 1.133
+                  },
+                  "penalty": 0.6,
+                  "total_score": 4.004
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce luxurious.",
+                  "id": "fallback_luxurious_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'luxurious'.",
+                  "id": "fallback_luxurious_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce craftsmanship.",
+                  "id": "fallback_craftsmanship_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'craftsmanship'.",
+                  "id": "fallback_craftsmanship_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Reference historical typographic forms without pastiche.",
+                  "id": "heritage_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use sepia, navy, or aged-paper tones for a sense of time.",
+                  "id": "heritage_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The use of Playfair Display for headlines exudes a sense of timeless elegance, while Roboto Slab for body text ensures readability without sacrificing sophistication. The color palette, featuring rich golds and deep purples, underscores the brand's premium and exclusive nature. Together, these elements create a refined and prestigious tone, perfectly encapsulating the essence of luxury."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_04_organic_skincare",
+        "system": "brandmind_full",
+        "brief": "Verdant Dew is an eco skincare brand for urban professionals seeking clean ingredients. The brand should feel organic, calm, and trustworthy.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 47.935,
+        "output": {
+          "archetype": "Organic",
+          "kit": {
+            "archetype": "Organic",
+            "industry": "Eco Skincare",
+            "target_audience": "Urban Professionals",
+            "primary_emotions": [
+              "calm",
+              "organic",
+              "trustworthy"
+            ],
+            "style_keywords": [
+              "modern",
+              "sophisticated",
+              "natural"
+            ],
+            "brand_attributes": [
+              "natural",
+              "calming",
+              "grounded",
+              "sustainable",
+              "gentle",
+              "eco-friendly",
+              "clean"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "Comic Neue",
+                "category": "handwriting",
+                "variants": [
+                  "300",
+                  "300italic",
+                  "regular",
+                  "italic",
+                  "700",
+                  "700italic"
+                ],
+                "subsets": [
+                  "latin"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 5.0
+              },
+              "pairing_rationale": "Selected Comic Neue as the expressive/display face and Roboto as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_646",
+              "hex_codes": [
+                "#392B1C",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ],
+              "matched_emotions": [
+                "modern",
+                "organic"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 6.0,
+              "emoset_alignment": {
+                "brightness_target": 0.545,
+                "colorfulness_target": 0.517,
+                "palette_brightness": 0.499,
+                "palette_colorfulness": 0.516,
+                "alignment_score": 1.882
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['calm', 'modern', 'natural', 'organic', 'sophisticated', 'trustworthy'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['calm', 'organic', 'trustworthy'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce eco-friendly.",
+              "Keep the overall visual system consistent with the attribute 'eco-friendly'.",
+              "Use layout, typography, and color choices to reinforce sustainable.",
+              "Keep the overall visual system consistent with the attribute 'sustainable'.",
+              "Use layout, typography, and color choices to reinforce clean.",
+              "Keep the overall visual system consistent with the attribute 'clean'."
+            ],
+            "constraints_checked_later": [
+              "Design must feel organic, calm, and trustworthy.",
+              "Use colors that evoke nature and freshness, avoiding harsh or synthetic colors.",
+              "Ensure accessibility, possibly including WCAG compliance and colorblind-friendly palettes.",
+              "Avoid overly complex or aggressive fonts to maintain a calm and trustworthy tone.",
+              "Design should appeal to urban professionals, suggesting a modern and sophisticated aesthetic.",
+              "Respect industry conventions for eco skincare brands, such as using natural imagery and sustainable materials."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "natural",
+                "calming",
+                "grounded",
+                "sustainable",
+                "gentle",
+                "calm",
+                "trustworthy",
+                "sophisticated"
+              ],
+              "palette_notes": "The palette should evoke nature and freshness with colors that are subdued and organic, ensuring all text overlays pass WCAG AA compliance."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "Comic Neue",
+                "category": "handwriting",
+                "variants": [
+                  "300",
+                  "300italic",
+                  "regular",
+                  "italic",
+                  "700",
+                  "700italic"
+                ],
+                "subsets": [
+                  "latin"
+                ],
+                "score": 7.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_646",
+                  "hex_codes": [
+                    "#391c1e",
+                    "#74c8d9",
+                    "#2b2e23",
+                    "#490e57",
+                    "#6c95e5"
+                  ],
+                  "matched_emotions": [
+                    "modern",
+                    "organic"
+                  ],
+                  "available_labels": [
+                    "dreamy",
+                    "modern",
+                    "organic"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.545,
+                    "colorfulness_target": 0.517,
+                    "palette_brightness": 0.499,
+                    "palette_colorfulness": 0.516,
+                    "alignment_score": 1.882
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 8.1,
+                    "min_ratio": 1.023
+                  },
+                  "penalty": 2.0,
+                  "total_score": 6.282
+                },
+                {
+                  "palette_name": "palette_177",
+                  "hex_codes": [
+                    "#8b7d9d",
+                    "#a30e5c",
+                    "#6c9398",
+                    "#a8c25f",
+                    "#97484b"
+                  ],
+                  "matched_emotions": [
+                    "calm",
+                    "sophisticated"
+                  ],
+                  "available_labels": [
+                    "calm",
+                    "professional",
+                    "sophisticated"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.545,
+                    "colorfulness_target": 0.517,
+                    "palette_brightness": 0.641,
+                    "palette_colorfulness": 0.488,
+                    "alignment_score": 1.687
+                  },
+                  "wcag_stats": {
+                    "pass_count": 0,
+                    "total_pairs": 10,
+                    "pass_rate": 0.0,
+                    "max_ratio": 3.801,
+                    "min_ratio": 1.135
+                  },
+                  "penalty": 0.8,
+                  "total_score": 2.087
+                },
+                {
+                  "palette_name": "palette_638",
+                  "hex_codes": [
+                    "#935e76",
+                    "#638595",
+                    "#c9898b",
+                    "#bb6acd",
+                    "#43cdd6"
+                  ],
+                  "matched_emotions": [
+                    "modern",
+                    "natural"
+                  ],
+                  "available_labels": [
+                    "grounded",
+                    "modern",
+                    "natural"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.545,
+                    "colorfulness_target": 0.517,
+                    "palette_brightness": 0.718,
+                    "palette_colorfulness": 0.437,
+                    "alignment_score": 1.365
+                  },
+                  "wcag_stats": {
+                    "pass_count": 0,
+                    "total_pairs": 10,
+                    "pass_rate": 0.0,
+                    "max_ratio": 2.667,
+                    "min_ratio": 1.138
+                  },
+                  "penalty": 0.8,
+                  "total_score": 1.765
+                },
+                {
+                  "palette_name": "palette_426",
+                  "hex_codes": [
+                    "#bfa1d8",
+                    "#53b640",
+                    "#6d4658",
+                    "#341163",
+                    "#f2d384"
+                  ],
+                  "matched_emotions": [
+                    "modern",
+                    "organic"
+                  ],
+                  "available_labels": [
+                    "modern",
+                    "organic",
+                    "peaceful"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.545,
+                    "colorfulness_target": 0.517,
+                    "palette_brightness": 0.665,
+                    "palette_colorfulness": 0.509,
+                    "alignment_score": 1.678
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 10.258,
+                    "min_ratio": 1.144
+                  },
+                  "penalty": 2.8,
+                  "total_score": 1.678
+                },
+                {
+                  "palette_name": "palette_563",
+                  "hex_codes": [
+                    "#262503",
+                    "#e1a898",
+                    "#ed8fcf",
+                    "#654741",
+                    "#19e3eb"
+                  ],
+                  "matched_emotions": [
+                    "modern",
+                    "sophisticated"
+                  ],
+                  "available_labels": [
+                    "fresh",
+                    "modern",
+                    "sophisticated"
+                  ],
+                  "emotion_score": 6.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.545,
+                    "colorfulness_target": 0.517,
+                    "palette_brightness": 0.656,
+                    "palette_colorfulness": 0.578,
+                    "alignment_score": 1.57
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 9.811,
+                    "min_ratio": 1.087
+                  },
+                  "penalty": 2.8,
+                  "total_score": 1.57
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce eco-friendly.",
+                  "id": "fallback_eco-friendly_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'eco-friendly'.",
+                  "id": "fallback_eco-friendly_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce sustainable.",
+                  "id": "fallback_sustainable_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'sustainable'.",
+                  "id": "fallback_sustainable_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce clean.",
+                  "id": "fallback_clean_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'clean'.",
+                  "id": "fallback_clean_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The Organic brand archetype is expressed through the playful yet approachable Comic Neue headline font, which evokes a sense of natural authenticity, while the clean and modern Roboto body font ensures readability and trustworthiness. The color palette, featuring earthy tones like #392B1C and #2B2E23, alongside calming hues such as #74C8D9 and #6C95E5, reinforces a grounded and gentle atmosphere. Together, these elements create a sophisticated and sustainable brand tone."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_05_cybersecurity_tech",
+        "system": "brandmind_full",
+        "brief": "ShieldMesh is a cybersecurity SaaS platform for engineering teams. Identity should feel technical, secure, and modern.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 51.961,
+        "output": {
+          "archetype": "Tech",
+          "kit": {
+            "archetype": "Tech",
+            "industry": "Cybersecurity SaaS",
+            "target_audience": "Engineering teams",
+            "primary_emotions": [
+              "secure",
+              "modern",
+              "technical"
+            ],
+            "style_keywords": [
+              "technical",
+              "secure",
+              "modern"
+            ],
+            "brand_attributes": [
+              "precise",
+              "modern",
+              "innovative",
+              "intelligent",
+              "efficient",
+              "trustworthy",
+              "reliable"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "pairing_rationale": "Selected Roboto as the expressive/display face and Open Sans as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_646",
+              "hex_codes": [
+                "#392B1C",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ],
+              "matched_emotions": [
+                "modern"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 3.0,
+              "emoset_alignment": {
+                "brightness_target": 0.535,
+                "colorfulness_target": 0.521,
+                "palette_brightness": 0.499,
+                "palette_colorfulness": 0.516,
+                "alignment_score": 1.896
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['modern', 'secure', 'technical'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['secure', 'modern', 'technical'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Maintain strong readability and consistent spacing throughout.",
+              "Favor balanced compositions and stable, calm visual rhythm.",
+              "Use layout, typography, and color choices to reinforce innovative.",
+              "Keep the overall visual system consistent with the attribute 'innovative'.",
+              "Use layout, typography, and color choices to reinforce reliable.",
+              "Keep the overall visual system consistent with the attribute 'reliable'."
+            ],
+            "constraints_checked_later": [
+              "Design must feel technical, secure, and modern.",
+              "Follow industry conventions for cybersecurity branding.",
+              "Ensure accessibility compliance, such as WCAG standards.",
+              "Use colors that convey security and trust, avoiding overly bright or alarming colors.",
+              "Fonts should be modern and technical, avoiding overly decorative or serif fonts."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "precise",
+                "modern",
+                "innovative",
+                "intelligent",
+                "efficient",
+                "professional",
+                "confident",
+                "cutting-edge"
+              ],
+              "palette_notes": "The palette should feel trustworthy and calm, using muted tones that convey security and reliability."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_646",
+                  "hex_codes": [
+                    "#391c1e",
+                    "#74c8d9",
+                    "#2b2e23",
+                    "#490e57",
+                    "#6c95e5"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "dreamy",
+                    "modern",
+                    "organic"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.535,
+                    "colorfulness_target": 0.521,
+                    "palette_brightness": 0.499,
+                    "palette_colorfulness": 0.516,
+                    "alignment_score": 1.896
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 8.1,
+                    "min_ratio": 1.023
+                  },
+                  "penalty": 0.0,
+                  "total_score": 7.296
+                },
+                {
+                  "palette_name": "palette_337",
+                  "hex_codes": [
+                    "#432e13",
+                    "#892c9f",
+                    "#e4d9f9",
+                    "#aaef96",
+                    "#bd9ec7"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "modern",
+                    "soft",
+                    "warm"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.535,
+                    "colorfulness_target": 0.521,
+                    "palette_brightness": 0.716,
+                    "palette_colorfulness": 0.429,
+                    "alignment_score": 1.317
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 9.514,
+                    "min_ratio": 1.006
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.317
+                },
+                {
+                  "palette_name": "palette_426",
+                  "hex_codes": [
+                    "#bfa1d8",
+                    "#53b640",
+                    "#6d4658",
+                    "#341163",
+                    "#f2d384"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "modern",
+                    "organic",
+                    "peaceful"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.535,
+                    "colorfulness_target": 0.521,
+                    "palette_brightness": 0.665,
+                    "palette_colorfulness": 0.509,
+                    "alignment_score": 1.643
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 10.258,
+                    "min_ratio": 1.144
+                  },
+                  "penalty": 0.0,
+                  "total_score": 4.243
+                },
+                {
+                  "palette_name": "palette_563",
+                  "hex_codes": [
+                    "#262503",
+                    "#e1a898",
+                    "#ed8fcf",
+                    "#654741",
+                    "#19e3eb"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "fresh",
+                    "modern",
+                    "sophisticated"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.535,
+                    "colorfulness_target": 0.521,
+                    "palette_brightness": 0.656,
+                    "palette_colorfulness": 0.578,
+                    "alignment_score": 1.556
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 9.811,
+                    "min_ratio": 1.087
+                  },
+                  "penalty": 0.0,
+                  "total_score": 4.156
+                },
+                {
+                  "palette_name": "palette_35",
+                  "hex_codes": [
+                    "#f87096",
+                    "#244306",
+                    "#005403",
+                    "#a1c5fd",
+                    "#411c4b"
+                  ],
+                  "matched_emotions": [
+                    "modern"
+                  ],
+                  "available_labels": [
+                    "dramatic",
+                    "modern",
+                    "youthful"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.535,
+                    "colorfulness_target": 0.521,
+                    "palette_brightness": 0.57,
+                    "palette_colorfulness": 0.69,
+                    "alignment_score": 1.491
+                  },
+                  "wcag_stats": {
+                    "pass_count": 4,
+                    "total_pairs": 10,
+                    "pass_rate": 0.4,
+                    "max_ratio": 7.987,
+                    "min_ratio": 1.207
+                  },
+                  "penalty": 0.0,
+                  "total_score": 4.091
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Maintain strong readability and consistent spacing throughout.",
+                  "id": "trustworthy_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Favor balanced compositions and stable, calm visual rhythm.",
+                  "id": "trustworthy_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce innovative.",
+                  "id": "fallback_innovative_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'innovative'.",
+                  "id": "fallback_innovative_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce reliable.",
+                  "id": "fallback_reliable_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'reliable'.",
+                  "id": "fallback_reliable_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The Tech brand archetype is embodied through the precise and modern sans-serif fonts Roboto and Open Sans, which convey a sense of innovation and efficiency. The color palette, featuring the confident and professional hues of #392B1C and #490E57, combined with the cutting-edge and intelligent tones of #74C8D9 and #6C95E5, enhances the brand's modern and forward-thinking identity. Together, these elements create a cohesive and professional visual language that reflects the brand's commitment to innovation and intelligence."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_06_artisan_bakery",
+        "system": "brandmind_full",
+        "brief": "Oak Crumb is an artisan sourdough bakery emphasizing handmade quality and neighborhood warmth. The brand should feel authentic, human, and craft-driven.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 42.858,
+        "output": {
+          "archetype": "Artisan",
+          "kit": {
+            "archetype": "Artisan",
+            "industry": "Artisan Bakery",
+            "target_audience": "Local Community",
+            "primary_emotions": [
+              "warm",
+              "authentic",
+              "craft-driven"
+            ],
+            "style_keywords": [
+              "handmade",
+              "earthy",
+              "approachable"
+            ],
+            "brand_attributes": [
+              "handmade",
+              "authentic",
+              "warm",
+              "craft-driven",
+              "neighborly",
+              "authenticity",
+              "warmth",
+              "craftsmanship"
+            ],
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "pairing_rationale": "Selected Playfair Display as the expressive/display face and Roboto Slab as the supporting/body face."
+            },
+            "color_palette": {
+              "palette_name": "palette_175",
+              "hex_codes": [
+                "#97C746",
+                "#89C746",
+                "#121A9A",
+                "#C0F8E6",
+                "#621D4D"
+              ],
+              "matched_emotions": [
+                "earthy"
+              ],
+              "industry_bonus": 0.0,
+              "emotion_score": 3.0,
+              "emoset_alignment": {
+                "brightness_target": 0.544,
+                "colorfulness_target": 0.575,
+                "palette_brightness": 0.752,
+                "palette_colorfulness": 0.7,
+                "alignment_score": 1.169
+              },
+              "palette_rationale": "Retrieved palettes by matching requested emotions/styles ['approachable', 'authentic', 'craft_driven', 'earthy', 'handmade', 'warm'] against branding palette labels, reranked them using EmoSet-derived brightness/colorfulness targets for ['warm', 'authentic', 'craft-driven'], explicit constraint penalties, and pairwise WCAG contrast scoring."
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce authenticity.",
+              "Keep the overall visual system consistent with the attribute 'authenticity'.",
+              "Use layout, typography, and color choices to reinforce warmth.",
+              "Keep the overall visual system consistent with the attribute 'warmth'.",
+              "Use layout, typography, and color choices to reinforce craftsmanship.",
+              "Keep the overall visual system consistent with the attribute 'craftsmanship'."
+            ],
+            "constraints_checked_later": [
+              "Design must emphasize handmade quality and neighborhood warmth.",
+              "Brand should feel authentic, human, and craft-driven.",
+              "Avoid overly modern or industrial design elements.",
+              "Use warm, earthy color palette to convey neighborhood warmth.",
+              "Typography should feel handcrafted and approachable.",
+              "Design should align with artisan industry conventions.",
+              "Ensure accessibility for all users, including colorblind-friendly design."
+            ],
+            "tone_and_voice_seed": {
+              "tone_keywords": [
+                "handmade",
+                "authentic",
+                "warm",
+                "craft-driven",
+                "neighborly",
+                "friendly",
+                "inviting",
+                "genuine"
+              ],
+              "palette_notes": "The palette should feel warm and earthy, ensuring all colors are accessible and colorblind-friendly, passing WCAG AA standards for text overlays."
+            },
+            "generator_trace": {
+              "font_candidates_seen": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "palette_candidates_seen": [
+                {
+                  "palette_name": "palette_175",
+                  "hex_codes": [
+                    "#a4f41c",
+                    "#85d72b",
+                    "#121a9a",
+                    "#c0f8e6",
+                    "#621d4d"
+                  ],
+                  "matched_emotions": [
+                    "earthy"
+                  ],
+                  "available_labels": [
+                    "earthy",
+                    "nautical",
+                    "trust"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.544,
+                    "colorfulness_target": 0.575,
+                    "palette_brightness": 0.752,
+                    "palette_colorfulness": 0.7,
+                    "alignment_score": 1.169
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 10.86,
+                    "min_ratio": 1.099
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.569
+                },
+                {
+                  "palette_name": "palette_642",
+                  "hex_codes": [
+                    "#a5d88f",
+                    "#84a981",
+                    "#272172",
+                    "#f8d192",
+                    "#712609"
+                  ],
+                  "matched_emotions": [
+                    "earthy"
+                  ],
+                  "available_labels": [
+                    "earthy",
+                    "powerful",
+                    "reliable"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.544,
+                    "colorfulness_target": 0.575,
+                    "palette_brightness": 0.675,
+                    "palette_colorfulness": 0.523,
+                    "alignment_score": 1.544
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 9.391,
+                    "min_ratio": 1.133
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.544
+                },
+                {
+                  "palette_name": "palette_433",
+                  "hex_codes": [
+                    "#0e5b15",
+                    "#a23418",
+                    "#282a4e",
+                    "#e8bd08",
+                    "#cedf70"
+                  ],
+                  "matched_emotions": [
+                    "warm"
+                  ],
+                  "available_labels": [
+                    "creative",
+                    "luxurious",
+                    "warm"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.544,
+                    "colorfulness_target": 0.575,
+                    "palette_brightness": 0.616,
+                    "palette_colorfulness": 0.73,
+                    "alignment_score": 1.433
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 9.412,
+                    "min_ratio": 1.204
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.433
+                },
+                {
+                  "palette_name": "palette_704",
+                  "hex_codes": [
+                    "#160cb9",
+                    "#69fead",
+                    "#371aa2",
+                    "#0cf272",
+                    "#0d4733"
+                  ],
+                  "matched_emotions": [
+                    "earthy"
+                  ],
+                  "available_labels": [
+                    "cool",
+                    "earthy",
+                    "organic"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.544,
+                    "colorfulness_target": 0.575,
+                    "palette_brightness": 0.717,
+                    "palette_colorfulness": 0.826,
+                    "alignment_score": 0.942
+                  },
+                  "wcag_stats": {
+                    "pass_count": 6,
+                    "total_pairs": 10,
+                    "pass_rate": 0.6,
+                    "max_ratio": 9.165,
+                    "min_ratio": 1.025
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.342
+                },
+                {
+                  "palette_name": "palette_337",
+                  "hex_codes": [
+                    "#432e13",
+                    "#892c9f",
+                    "#e4d9f9",
+                    "#aaef96",
+                    "#bd9ec7"
+                  ],
+                  "matched_emotions": [
+                    "warm"
+                  ],
+                  "available_labels": [
+                    "modern",
+                    "soft",
+                    "warm"
+                  ],
+                  "emotion_score": 3.0,
+                  "industry_bonus": 0.0,
+                  "emoset_alignment": {
+                    "brightness_target": 0.544,
+                    "colorfulness_target": 0.575,
+                    "palette_brightness": 0.716,
+                    "palette_colorfulness": 0.429,
+                    "alignment_score": 1.205
+                  },
+                  "wcag_stats": {
+                    "pass_count": 5,
+                    "total_pairs": 10,
+                    "pass_rate": 0.5,
+                    "max_ratio": 9.514,
+                    "min_ratio": 1.006
+                  },
+                  "penalty": 0.0,
+                  "total_score": 6.205
+                }
+              ],
+              "heuristics_used": [
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce authenticity.",
+                  "id": "fallback_authenticity_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'authenticity'.",
+                  "id": "fallback_authenticity_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce warmth.",
+                  "id": "fallback_warmth_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'warmth'.",
+                  "id": "fallback_warmth_1",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Use layout, typography, and color choices to reinforce craftsmanship.",
+                  "id": "fallback_craftsmanship_0",
+                  "weight": 1.0
+                },
+                {
+                  "rule": "Keep the overall visual system consistent with the attribute 'craftsmanship'.",
+                  "id": "fallback_craftsmanship_1",
+                  "weight": 1.0
+                }
+              ]
+            },
+            "archetype_alignment": "The Artisan brand archetype is embodied through the elegant Playfair Display headline font, which conveys a sense of craftsmanship and tradition, while the Roboto Slab body font ensures readability and a modern touch. The color palette, with its earthy greens and deep blues, evokes a sense of authenticity and warmth, complemented by inviting pastels that enhance the neighborly and genuine tone. Together, these elements create a craft-driven and friendly brand identity."
+          },
+          "state_status": "failed",
+          "iteration_count": 3
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      }
+    ],
+    "baseline_zero_shot_gpt4o": [
+      {
+        "case_id": "case_01_fintech_corporate",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "Nimbus Ledger is a B2B fintech platform for cross-border invoices. Brand identity should feel trustworthy, precise, and modern for enterprise finance teams.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 4.964,
+        "output": {
+          "archetype": "Corporate",
+          "kit": {
+            "archetype": "Corporate",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif"
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#003366",
+                "#00509E",
+                "#0073E6",
+                "#E6E6E6",
+                "#FFFFFF"
+              ]
+            },
+            "tone_keywords": [
+              "trustworthy",
+              "precise",
+              "modern"
+            ],
+            "rationale": "The Corporate archetype aligns with Nimbus Ledger's B2B focus and need for trustworthiness. Sans-serif fonts like Roboto and Open Sans provide a clean, modern look suitable for enterprise finance teams. The color palette is WCAG AA accessible, avoiding neon colors, and consists of blues and neutrals that convey reliability and professionalism."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.5,
+          "coherence_score": 4.5,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_02_kids_playful",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "Pebble Pop is a toy subscription startup for kids age 6-10. The brand should feel playful and energetic while staying readable for parents.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 4.965,
+        "output": {
+          "archetype": "Playful",
+          "kit": {
+            "archetype": "Playful",
+            "font_recommendation": {
+              "headline": {
+                "family": "Baloo",
+                "category": "display"
+              },
+              "body": {
+                "family": "Quicksand",
+                "category": "sans-serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#F4A261",
+                "#2A9D8F",
+                "#E9C46A",
+                "#264653",
+                "#F4F1DE"
+              ]
+            },
+            "tone_keywords": [
+              "playful",
+              "energetic",
+              "friendly"
+            ],
+            "rationale": "The playful archetype aligns with the brand's focus on children and toys. The font choices are modern and readable, appealing to both kids and parents. The color palette is vibrant yet accessible, adhering to WCAG AA standards and avoiding neon and red tones."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.3,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_03_luxury_jewelry",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "Etoile Vault is a luxury jewelry house focused on heirloom craftsmanship. The style should feel premium, refined, and timeless.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 5.561,
+        "output": {
+          "archetype": "Luxury",
+          "kit": {
+            "archetype": "Luxury",
+            "font_recommendation": {
+              "headline": {
+                "family": "Baskerville",
+                "category": "serif"
+              },
+              "body": {
+                "family": "Garamond",
+                "category": "serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#1C1C1C",
+                "#A67B5B",
+                "#D4C5B0",
+                "#F5F5F5",
+                "#8C7B75"
+              ]
+            },
+            "tone_keywords": [
+              "premium",
+              "refined",
+              "timeless"
+            ],
+            "rationale": "The chosen fonts and colors reflect the luxury and timelessness of heirloom craftsmanship, ensuring accessibility and avoiding neon colors."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.3,
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_04_organic_skincare",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "Verdant Dew is an eco skincare brand for urban professionals seeking clean ingredients. The brand should feel organic, calm, and trustworthy.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 3.626,
+        "output": {
+          "archetype": "Organic",
+          "kit": {
+            "archetype": "Organic",
+            "font_recommendation": {
+              "headline": {
+                "family": "Lora",
+                "category": "serif"
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#4A7C59",
+                "#A3B18A",
+                "#D9E4DD",
+                "#283618",
+                "#606C38"
+              ]
+            },
+            "tone_keywords": [
+              "calm",
+              "trustworthy",
+              "natural"
+            ],
+            "rationale": "The 'Organic' archetype aligns with Verdant Dew's mission of providing eco-friendly skincare. The chosen serif and sans-serif fonts convey a blend of elegance and readability, suitable for urban professionals. The color palette is WCAG AA accessible, avoiding neon and red colors, and reflects a natural and calming aesthetic."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.2,
+          "coherence_score": 4.3,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_05_cybersecurity_tech",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "ShieldMesh is a cybersecurity SaaS platform for engineering teams. Identity should feel technical, secure, and modern.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 3.393,
+        "output": {
+          "archetype": "Tech",
+          "kit": {
+            "archetype": "Tech",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif"
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#003366",
+                "#006699",
+                "#3399CC",
+                "#66CCFF",
+                "#99CCFF"
+              ]
+            },
+            "tone_keywords": [
+              "technical",
+              "secure",
+              "modern"
+            ],
+            "rationale": "The Tech archetype aligns with ShieldMesh's focus on cybersecurity for engineering teams. Sans-serif fonts like Roboto and Open Sans convey a clean, modern look, enhancing readability and professionalism. The color palette avoids neon colors and adheres to WCAG AA accessibility, ensuring a trustworthy and technical appearance."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.2,
+          "coherence_score": 4.5,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_06_artisan_bakery",
+        "system": "baseline_zero_shot_gpt4o",
+        "brief": "Oak Crumb is an artisan sourdough bakery emphasizing handmade quality and neighborhood warmth. The brand should feel authentic, human, and craft-driven.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 4.939,
+        "output": {
+          "archetype": "Artisan",
+          "kit": {
+            "archetype": "Artisan",
+            "font_recommendation": {
+              "headline": {
+                "family": "Garamond",
+                "category": "serif"
+              },
+              "body": {
+                "family": "Georgia",
+                "category": "serif"
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#6B4F4F",
+                "#A68D7C",
+                "#D9C5B2",
+                "#F2E9E4",
+                "#3E2C41"
+              ]
+            },
+            "tone_keywords": [
+              "authentic",
+              "warm",
+              "craft-driven"
+            ],
+            "rationale": "The Artisan archetype highlights the handmade and authentic nature of Oak Crumb. Serif fonts like Garamond and Georgia convey tradition and craftsmanship, while the warm, earthy color palette aligns with the bakery's emphasis on neighborhood warmth and handmade quality."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.3,
+          "coherence_score": 4.6,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      }
+    ],
+    "baseline_rag_only": [
+      {
+        "case_id": "case_01_fintech_corporate",
+        "system": "baseline_rag_only",
+        "brief": "Nimbus Ledger is a B2B fintech platform for cross-border invoices. Brand identity should feel trustworthy, precise, and modern for enterprise finance teams.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 4.339,
+        "output": {
+          "archetype": "Corporate",
+          "kit": {
+            "archetype": "Corporate",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#391C1E",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce b2b.",
+              "Keep the overall visual system consistent with the attribute 'b2b'.",
+              "Use layout, typography, and color choices to reinforce cross-border.",
+              "Keep the overall visual system consistent with the attribute 'cross-border'.",
+              "Use layout, typography, and color choices to reinforce enterprise.",
+              "Keep the overall visual system consistent with the attribute 'enterprise'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_02_kids_playful",
+        "system": "baseline_rag_only",
+        "brief": "Pebble Pop is a toy subscription startup for kids age 6-10. The brand should feel playful and energetic while staying readable for parents.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 4.546,
+        "output": {
+          "archetype": "Playful",
+          "kit": {
+            "archetype": "Playful",
+            "font_recommendation": {
+              "headline": {
+                "family": "M PLUS Rounded 1c",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "300",
+                  "regular",
+                  "500",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "japanese",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 8.0
+              },
+              "body": {
+                "family": "Comfortaa",
+                "category": "display",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#C5E7AE",
+                "#031540",
+                "#A1F235",
+                "#BCC2A6",
+                "#17369E"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce energetic.",
+              "Keep the overall visual system consistent with the attribute 'energetic'.",
+              "Use layout, typography, and color choices to reinforce accessible.",
+              "Keep the overall visual system consistent with the attribute 'accessible'.",
+              "Use layout, typography, and color choices to reinforce engaging.",
+              "Keep the overall visual system consistent with the attribute 'engaging'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_03_luxury_jewelry",
+        "system": "baseline_rag_only",
+        "brief": "Etoile Vault is a luxury jewelry house focused on heirloom craftsmanship. The style should feel premium, refined, and timeless.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 4.095,
+        "output": {
+          "archetype": "Luxury",
+          "kit": {
+            "archetype": "Luxury",
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#391C1E",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce heirloom.",
+              "Keep the overall visual system consistent with the attribute 'heirloom'.",
+              "Use layout, typography, and color choices to reinforce sophisticated.",
+              "Keep the overall visual system consistent with the attribute 'sophisticated'.",
+              "Use layout, typography, and color choices to reinforce artisanal.",
+              "Keep the overall visual system consistent with the attribute 'artisanal'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_04_organic_skincare",
+        "system": "baseline_rag_only",
+        "brief": "Verdant Dew is an eco skincare brand for urban professionals seeking clean ingredients. The brand should feel organic, calm, and trustworthy.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 3.941,
+        "output": {
+          "archetype": "Organic",
+          "kit": {
+            "archetype": "Organic",
+            "font_recommendation": {
+              "headline": {
+                "family": "Comic Neue",
+                "category": "handwriting",
+                "variants": [
+                  "300",
+                  "300italic",
+                  "regular",
+                  "italic",
+                  "700",
+                  "700italic"
+                ],
+                "subsets": [
+                  "latin"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 5.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#0A3D62",
+                "#08EAA0",
+                "#62E6F3",
+                "#29DF33",
+                "#391DD4"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce sustainable.",
+              "Keep the overall visual system consistent with the attribute 'sustainable'.",
+              "Use layout, typography, and color choices to reinforce pure.",
+              "Keep the overall visual system consistent with the attribute 'pure'.",
+              "Use layout, typography, and color choices to reinforce reliable.",
+              "Keep the overall visual system consistent with the attribute 'reliable'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No red",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_05_cybersecurity_tech",
+        "system": "baseline_rag_only",
+        "brief": "ShieldMesh is a cybersecurity SaaS platform for engineering teams. Identity should feel technical, secure, and modern.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 3.408,
+        "output": {
+          "archetype": "Tech",
+          "kit": {
+            "archetype": "Tech",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#53594E",
+                "#113683",
+                "#B7E8A6",
+                "#481EF8",
+                "#D6F4FE"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce reliable.",
+              "Keep the overall visual system consistent with the attribute 'reliable'.",
+              "Use layout, typography, and color choices to reinforce cutting-edge.",
+              "Keep the overall visual system consistent with the attribute 'cutting-edge'.",
+              "Use layout, typography, and color choices to reinforce user-friendly.",
+              "Keep the overall visual system consistent with the attribute 'user-friendly'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 2,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_06_artisan_bakery",
+        "system": "baseline_rag_only",
+        "brief": "Oak Crumb is an artisan sourdough bakery emphasizing handmade quality and neighborhood warmth. The brand should feel authentic, human, and craft-driven.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 3.599,
+        "output": {
+          "archetype": "Artisan",
+          "kit": {
+            "archetype": "Artisan",
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": [
+                "#391C1E",
+                "#74C8D9",
+                "#2B2E23",
+                "#490E57",
+                "#6C95E5"
+              ]
+            },
+            "design_rules": [
+              "Use layout, typography, and color choices to reinforce authentic.",
+              "Keep the overall visual system consistent with the attribute 'authentic'.",
+              "Use layout, typography, and color choices to reinforce human.",
+              "Keep the overall visual system consistent with the attribute 'human'.",
+              "Use layout, typography, and color choices to reinforce craft-driven.",
+              "Keep the overall visual system consistent with the attribute 'craft-driven'."
+            ],
+            "rationale": "Single-pass retrieval baseline without QC loop."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": true,
+          "wcag_pass_rate": 0.6,
+          "coherence_score": 4.0,
+          "constraint_pass_count": 3,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": true
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": true
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      }
+    ],
+    "baseline_fontjoy": [
+      {
+        "case_id": "case_01_fintech_corporate",
+        "system": "baseline_fontjoy",
+        "brief": "Nimbus Ledger is a B2B fintech platform for cross-border invoices. Brand identity should feel trustworthy, precise, and modern for enterprise finance teams.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 1.813,
+        "output": {
+          "archetype": "Corporate",
+          "kit": {
+            "archetype": "Corporate",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.5,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_02_kids_playful",
+        "system": "baseline_fontjoy",
+        "brief": "Pebble Pop is a toy subscription startup for kids age 6-10. The brand should feel playful and energetic while staying readable for parents.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 2.284,
+        "output": {
+          "archetype": "Playful",
+          "kit": {
+            "archetype": "Playful",
+            "font_recommendation": {
+              "headline": {
+                "family": "Comfortaa",
+                "category": "display",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 5.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.3,
+          "constraint_pass_count": 0,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No red",
+              "pass": false
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_03_luxury_jewelry",
+        "system": "baseline_fontjoy",
+        "brief": "Etoile Vault is a luxury jewelry house focused on heirloom craftsmanship. The style should feel premium, refined, and timeless.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 2.16,
+        "output": {
+          "archetype": "Luxury",
+          "kit": {
+            "archetype": "Luxury",
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.4,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_04_organic_skincare",
+        "system": "baseline_fontjoy",
+        "brief": "Verdant Dew is an eco skincare brand for urban professionals seeking clean ingredients. The brand should feel organic, calm, and trustworthy.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No red"
+        ],
+        "runtime_sec": 1.511,
+        "output": {
+          "archetype": "Organic",
+          "kit": {
+            "archetype": "Organic",
+            "font_recommendation": {
+              "headline": {
+                "family": "Comic Neue",
+                "category": "handwriting",
+                "variants": [
+                  "300",
+                  "300italic",
+                  "regular",
+                  "italic",
+                  "700",
+                  "700italic"
+                ],
+                "subsets": [
+                  "latin"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 5.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.3,
+          "constraint_pass_count": 0,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No red",
+              "pass": false
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_05_cybersecurity_tech",
+        "system": "baseline_fontjoy",
+        "brief": "ShieldMesh is a cybersecurity SaaS platform for engineering teams. Identity should feel technical, secure, and modern.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "Avoid serif fonts"
+        ],
+        "runtime_sec": 1.988,
+        "output": {
+          "archetype": "Tech",
+          "kit": {
+            "archetype": "Tech",
+            "font_recommendation": {
+              "headline": {
+                "family": "Roboto",
+                "category": "sans-serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "100italic",
+                  "200italic",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Open Sans",
+                "category": "sans-serif",
+                "variants": [
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "300italic",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "hebrew",
+                  "latin",
+                  "latin-ext",
+                  "math",
+                  "symbols",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.5,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid serif fonts",
+              "pass": true
+            }
+          ]
+        }
+      },
+      {
+        "case_id": "case_06_artisan_bakery",
+        "system": "baseline_fontjoy",
+        "brief": "Oak Crumb is an artisan sourdough bakery emphasizing handmade quality and neighborhood warmth. The brand should feel authentic, human, and craft-driven.",
+        "constraints": [
+          "WCAG AA accessible palette",
+          "Avoid neon colors",
+          "No sans"
+        ],
+        "runtime_sec": 1.86,
+        "output": {
+          "archetype": "Artisan",
+          "kit": {
+            "archetype": "Artisan",
+            "font_recommendation": {
+              "headline": {
+                "family": "Playfair Display",
+                "category": "serif",
+                "variants": [
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900",
+                  "italic",
+                  "500italic",
+                  "600italic",
+                  "700italic",
+                  "800italic",
+                  "900italic"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              },
+              "body": {
+                "family": "Roboto Slab",
+                "category": "serif",
+                "variants": [
+                  "100",
+                  "200",
+                  "300",
+                  "regular",
+                  "500",
+                  "600",
+                  "700",
+                  "800",
+                  "900"
+                ],
+                "subsets": [
+                  "cyrillic",
+                  "cyrillic-ext",
+                  "greek",
+                  "greek-ext",
+                  "latin",
+                  "latin-ext",
+                  "vietnamese"
+                ],
+                "score": 7.0
+              }
+            },
+            "color_palette": {
+              "hex_codes": []
+            },
+            "rationale": "Rule-based font pairing only baseline."
+          }
+        },
+        "evaluation": {
+          "wcag_all_pass": false,
+          "wcag_pass_rate": 0.0,
+          "coherence_score": 2.4,
+          "constraint_pass_count": 1,
+          "constraint_total": 3,
+          "constraint_results": [
+            {
+              "constraint": "WCAG AA accessible palette",
+              "pass": false
+            },
+            {
+              "constraint": "Avoid neon colors",
+              "pass": false
+            },
+            {
+              "constraint": "No sans",
+              "pass": true
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

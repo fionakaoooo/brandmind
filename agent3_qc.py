@@ -32,25 +32,36 @@ def _safe_json_loads(text: str, fallback: Any) -> Any:
         return fallback
 
 
-def _get_llm_client() -> Optional[OpenAI]:
-    groq_key = os.environ.get("GROQ_API_KEY", "").strip()
-    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
+def _resolve_provider() -> str:
+    explicit = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if explicit in ("openai", "groq"):
+        return explicit
+    if os.environ.get("GROQ_API_KEY", "").strip():
+        return "groq"
+    return "openai"
 
-    if groq_key:
-        return OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+
+def _get_llm_client() -> Optional[OpenAI]:
+    provider = _resolve_provider()
+    if provider == "groq":
+        groq_key = os.environ.get("GROQ_API_KEY", "").strip()
+        if groq_key:
+            return OpenAI(api_key=groq_key, base_url="https://api.groq.com/openai/v1")
+    openai_key = os.environ.get("OPENAI_API_KEY", "").strip()
     if openai_key:
-        return OpenAI(api_key=openai_key)
+        base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
+        return OpenAI(api_key=openai_key, base_url=base_url)
     return None
 
 
 def _coherence_model_name() -> str:
-    if os.environ.get("GROQ_API_KEY", "").strip():
+    if _resolve_provider() == "groq":
         return os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
     return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
 
 def _constraint_model_name() -> str:
-    if os.environ.get("GROQ_API_KEY", "").strip():
+    if _resolve_provider() == "groq":
         return os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
     return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
@@ -495,18 +506,25 @@ def _build_revision_feedback(
 
 def _select_best_kit_from_history(history: List[Dict[str, Any]]) -> Dict[str, Any]:
     best_entry: Optional[Dict[str, Any]] = None
-    best_score = -1.0
+    best_key = (-1, -1.0)
     for item in history:
         if not isinstance(item, dict):
             continue
         scores = item.get("qc_scores", {})
         if not isinstance(scores, dict):
             continue
-        score = float(scores.get("overall_score", 0.0))
-        if score > best_score:
-            best_score = score
+        constraints_block = scores.get("constraints", {}) if isinstance(scores.get("constraints"), dict) else {}
+        constraint_pass_count = int(constraints_block.get("pass_count", 0))
+        overall = float(scores.get("overall_score", 0.0))
+        key = (constraint_pass_count, overall)
+        if key > best_key:
+            best_key = key
             best_entry = item
     if best_entry and isinstance(best_entry.get("draft_brand_kit"), dict):
+        print(
+            f"[QC] Best draft selected from history: "
+            f"constraint_pass={best_key[0]}, overall_score={best_key[1]}"
+        )
         return best_entry["draft_brand_kit"]
     return {}
 

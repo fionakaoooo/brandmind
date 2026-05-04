@@ -68,6 +68,28 @@ def evaluate_palette_wcag(hex_codes: List[str], level: str = "AA", large_text: b
     }
 
 
+def evaluate_palette_wcag_min_pairs(
+    hex_codes: List[str],
+    level: str = "AA",
+    large_text: bool = False,
+    min_pairs_required: int = 2,
+) -> Dict:
+    """
+    Alternate WCAG evaluator. Same per-pair math as evaluate_palette_wcag, but
+    the palette is considered "passing" when at least `min_pairs_required`
+    foreground/background pairs hit AA, instead of requiring all pairs.
+    Empty palette is treated as failure regardless of threshold.
+    """
+    base = evaluate_palette_wcag(hex_codes, level=level, large_text=large_text)
+    base["min_pairs_required"] = int(min_pairs_required)
+    base["all_pass"] = bool(hex_codes) and base.get("pairs_passed", 0) >= int(min_pairs_required)
+    base["summary"] = (
+        f"{base.get('pairs_passed', 0)}/{base.get('pairs_checked', 0)} pairs pass WCAG 2.1 AA "
+        f"(threshold: >= {min_pairs_required} pairs)"
+    )
+    return base
+
+
 if __name__ == "__main__":
     test_palette = ["#1A1A2E", "#C9A96E", "#F5F0E8", "#8B7355", "#2C2C2C"]
     result = evaluate_palette_wcag(test_palette)

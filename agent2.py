@@ -4,6 +4,7 @@ Agent 2: Design Generator Agent
 
 from __future__ import annotations
 
+import colorsys
 import json
 import os
 from typing import Any, Dict, List
@@ -16,10 +17,121 @@ from tools.color_retrieve import color_retrieve
 from tools.heuristic_search import heuristic_search
 
 
-client = OpenAI(
-    api_key=os.environ.get("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
-)
+def _hex_to_hsv(hex_code: str):
+    s = hex_code.strip().lstrip("#")
+    r, g, b = (int(s[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    return colorsys.rgb_to_hsv(r, g, b)
+
+
+def _hsv_to_hex(h: float, s: float, v: float) -> str:
+    r, g, b = colorsys.hsv_to_rgb(h % 1.0, max(0.0, min(1.0, s)), max(0.0, min(1.0, v)))
+    return "#" + "".join(f"{int(round(c * 255)):02X}" for c in (r, g, b))
+
+
+def _is_neon(hex_code: str) -> bool:
+    _, s, v = _hex_to_hsv(hex_code)
+    return s >= 0.72 and v >= 0.82
+
+
+def _is_reddish(hex_code: str) -> bool:
+    h, _, _ = _hex_to_hsv(hex_code)
+    deg = h * 360.0
+    return deg < 20.0 or deg > 340.0
+
+
+def _desaturate_neon(hex_code: str) -> str:
+    h, s, v = _hex_to_hsv(hex_code)
+    if s >= 0.72:
+        s = 0.65
+    if v >= 0.82:
+        v = 0.78
+    return _hsv_to_hex(h, s, v)
+
+
+def _shift_red_to_amber(hex_code: str) -> str:
+    h, s, v = _hex_to_hsv(hex_code)
+    deg = h * 360.0
+    if deg < 20.0 or deg > 340.0:
+        h = 30.0 / 360.0
+    return _hsv_to_hex(h, s, v)
+
+
+def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
+    if not hex_codes:
+        return hex_codes
+    out: List[str] = []
+    for code in hex_codes:
+        c = str(code).strip()
+        if not c.startswith("#"):
+            c = "#" + c
+        if _is_reddish(c):
+            c = _shift_red_to_amber(c)
+        if _is_neon(c):
+            c = _desaturate_neon(c)
+        out.append(c.upper())
+    return out
+
+
+def _resolve_provider() -> str:
+    explicit = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if explicit in ("openai", "groq"):
+        return explicit
+    if os.environ.get("GROQ_API_KEY", "").strip():
+        return "groq"
+    return "openai"
+
+
+def _get_client() -> OpenAI:
+    if _resolve_provider() == "groq":
+        return OpenAI(
+            api_key=os.environ.get("GROQ_API_KEY"),
+            base_url="https://api.groq.com/openai/v1",
+        )
+    base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
+    return OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=base_url)
+
+
+def _get_model() -> str:
+    if _resolve_provider() == "groq":
+        return os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+    return os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+
+client = _get_client()
+
+# Canonical descriptor lexicon per archetype.
+# Sourced from Mark & Pearson, "The Hero and the Outlaw" (2001) and standard
+# brand-strategy practice. Not tuned to any benchmark.
+ARCHETYPE_TONE_LEXICON = {
+    "corporate": ["trustworthy", "reliable", "professional", "established", "authoritative"],
+    "tech":      ["precise", "modern", "innovative", "intelligent", "efficient"],
+    "minimal":   ["simple", "intentional", "refined", "uncluttered", "deliberate"],
+    "organic":   ["natural", "calming", "grounded", "sustainable", "gentle"],
+    "luxury":    ["premium", "refined", "timeless", "exclusive", "sophisticated"],
+    "playful":   ["energetic", "joyful", "lighthearted", "spontaneous", "fun"],
+    "bold":      ["confident", "decisive", "daring", "assertive", "dynamic"],
+    "artisan":   ["handmade", "authentic", "warm", "craft-driven", "neighborly"],
+    "heritage":  ["traditional", "enduring", "rooted", "established", "time-honored"],
+    "youthful":  ["vibrant", "fresh", "optimistic", "lively", "energetic"],
+}
+
+
+def _inject_archetype_tokens(archetype: str, existing: List[str], cap: int = 8) -> List[str]:
+    enabled = os.environ.get("BRANDMIND_TONE_INJECTION", "1").lower() not in ("0", "false", "no")
+    if not enabled:
+        return list(existing or [])[:cap]
+    canonical = ARCHETYPE_TONE_LEXICON.get((archetype or "").strip().lower(), [])
+    if not canonical:
+        return list(existing or [])[:cap]
+    seen: set = set()
+    merged: List[str] = []
+    for token in list(canonical) + list(existing or []):
+        norm = str(token).strip().lower()
+        if norm and norm not in seen:
+            seen.add(norm)
+            merged.append(str(token).strip())
+    return merged[:cap]
+
 
 ARCHETYPE_FALLBACK_PALETTES = {
     "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
@@ -98,7 +210,7 @@ Rules:
 
     try:
         resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model=_get_model(),
             messages=[{"role": "user", "content": prompt}],
             temperature=0.2,
             response_format={"type": "json_object"},
@@ -164,12 +276,16 @@ def assemble_draft_brand_kit(
     palette = palette_result.get("best_palette", {})
     rules = [h.get("rule") for h in heuristics if h.get("rule")]
 
+    enriched_tone_keywords = _inject_archetype_tokens(archetype, design_spec.get("tone_keywords", []))
+    enriched_brand_attrs = _inject_archetype_tokens(archetype, design_spec.get("brand_attributes", []))
+
     return {
         "archetype": archetype,
         "industry": design_spec["industry"],
         "target_audience": design_spec["target_audience"],
         "primary_emotions": design_spec["primary_emotions"],
         "style_keywords": design_spec["style_keywords"],
+        "brand_attributes": enriched_brand_attrs,
         "font_recommendation": {
             "headline": font_pair.get("headline_font"),
             "body": font_pair.get("body_font"),
@@ -187,7 +303,7 @@ def assemble_draft_brand_kit(
         "design_rules": rules,
         "constraints_checked_later": constraints,
         "tone_and_voice_seed": {
-            "tone_keywords": design_spec["tone_keywords"],
+            "tone_keywords": enriched_tone_keywords,
             "palette_notes": design_spec["palette_notes"],
         },
         "generator_trace": {
@@ -196,6 +312,43 @@ def assemble_draft_brand_kit(
             "heuristics_used": heuristics,
         }
     }
+
+
+def generate_archetype_alignment(archetype: str, kit: Dict[str, Any]) -> str:
+    headline = (kit.get("font_recommendation") or {}).get("headline") or {}
+    body = (kit.get("font_recommendation") or {}).get("body") or {}
+    palette_hex = (kit.get("color_palette") or {}).get("hex_codes") or []
+    tone_keywords = (kit.get("tone_and_voice_seed") or {}).get("tone_keywords") or []
+    prompt = (
+        "You are a senior brand designer writing a one-paragraph design rationale "
+        "for a brand book. In 2-3 sentences (max 80 words), explain how the chosen "
+        f"font pairing, color palette, and tone collectively express the {archetype} "
+        "brand archetype. Be specific about which choice does what. No marketing "
+        "fluff, no lists, no bullet points.\n\n"
+        f"Archetype: {archetype}\n"
+        f"Headline font: {headline.get('family')} ({headline.get('category')})\n"
+        f"Body font: {body.get('family')} ({body.get('category')})\n"
+        f"Palette: {palette_hex}\n"
+        f"Tone keywords: {tone_keywords}\n\n"
+        'Return ONLY valid JSON: {"rationale": "<2-3 sentences>"}'
+    )
+    try:
+        resp = client.chat.completions.create(
+            model=_get_model(),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            response_format={"type": "json_object"},
+        )
+        parsed = _safe_json_loads(resp.choices[0].message.content)
+        text = str(parsed.get("rationale", "")).strip()
+        if text:
+            return text
+    except Exception as exc:
+        print(f"[Generator] archetype_alignment narrative FAILED: {exc}")
+    return (
+        f"This {archetype} kit pairs the chosen typography and palette to reinforce "
+        f"the archetype's core register."
+    )
 
 
 def design_generator_agent(state: BrandMindState) -> BrandMindState:
@@ -253,6 +406,13 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             "palette_rationale": f"Archetype-safe fallback palette for {archetype}.",
         }
 
+    current_best = palette_result.get("best_palette", {})
+    raw_hex = current_best.get("hex_codes", [])
+    repaired_hex = repair_palette(raw_hex, constraints)
+    if repaired_hex != raw_hex:
+        print(f"[Generator] Palette repair applied: {raw_hex} -> {repaired_hex}")
+        palette_result["best_palette"] = {**current_best, "hex_codes": repaired_hex}
+
     heuristics: List[Dict[str, Any]] = []
     for attr in design_spec["brand_attributes"]:
         heuristics.extend(heuristic_search(attr))
@@ -273,6 +433,9 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         heuristics=deduped_heuristics[:6],
         constraints=constraints,
     )
+
+    if os.environ.get("BRANDMIND_NARRATIVE", "1").lower() not in ("0", "false", "no"):
+        draft_brand_kit["archetype_alignment"] = generate_archetype_alignment(archetype, draft_brand_kit)
 
     state["design_spec"] = design_spec
     state["draft_brand_kit"] = draft_brand_kit

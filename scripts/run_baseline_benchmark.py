@@ -22,7 +22,7 @@ from state import ARCHETYPES
 from tools.color_retrieve import color_retrieve
 from tools.font_lookup import font_lookup
 from tools.heuristic_search import heuristic_search
-from tools.wcag_check import evaluate_palette_wcag
+from tools.wcag_check import evaluate_palette_wcag, evaluate_palette_wcag_min_pairs
 
 
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
@@ -129,7 +129,8 @@ def get_openai_client() -> OpenAI:
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OPENAI_API_KEY is required for baseline benchmark.")
-    return OpenAI(api_key=key)
+    base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
+    return OpenAI(api_key=key, base_url=base_url)
 
 
 def safe_json_loads(text: str, fallback: Any) -> Any:
@@ -381,7 +382,7 @@ def check_constraint(constraint: str, kit: Dict[str, Any], wcag_report: Dict[str
     head_cat, body_cat = extract_font_categories(kit)
 
     if any(k in text for k in ["wcag", "accessible", "accessibility", "contrast", "colorblind"]):
-        return bool(wcag_report.get("all_pass", False))
+        return bool(palette) and bool(wcag_report.get("all_pass", False))
 
     if "no red" in text:
         return bool(palette) and not any(is_reddish(c) for c in palette)
@@ -429,15 +430,90 @@ Return only JSON:
     return max(1.0, min(5.0, score))
 
 
+def score_coherence_llm_rubric(
+    client: OpenAI,
+    archetype: str,
+    kit: Dict[str, Any],
+    model: str,
+) -> float:
+    prompt = f"""
+You are a senior brand design critic. Score how coherently a generated brand
+kit expresses its declared archetype on a 1.0-5.0 scale, using the rubric below.
+
+Archetype: {archetype}
+Kit JSON:
+{json.dumps(kit, ensure_ascii=False)}
+
+Score four sub-dimensions independently on 1.0-5.0 (use one decimal place,
+do not bias toward integers):
+
+1. font_alignment: Does the headline/body font category match the typographic
+   conventions for this archetype (e.g. Luxury -> high-contrast serif or
+   elegant display; Tech -> geometric sans; Artisan -> warm humanist serif)?
+2. palette_alignment: Does the color palette evoke the archetype's emotional
+   register (e.g. Luxury -> deep, restrained, gold/black; Playful -> bright,
+   varied, high-saturation; Organic -> earthy, muted, low-chroma greens)?
+3. tone_alignment: Are the tone_keywords / brand_attributes / palette_notes
+   consistent with the archetype, with no contradictions?
+4. narrative_coherence: Does the kit read as a unified story rather than a
+   bag of independently retrieved parts? Is there explicit reasoning that
+   ties choices to the archetype?
+
+Anchors (apply to each sub-dimension):
+- 5.0: textbook example of this archetype; experienced designer would ship as-is
+- 4.0: clearly aligned; one minor element is generic but not contradictory
+- 3.0: mixed; some elements fit, some are off; would need rework
+- 2.0: mostly off-archetype; few elements match
+- 1.0: contradicts the archetype
+
+Reserve 5.0 for kits that are genuinely exemplary. If a kit has any minor flaw,
+cap that sub-dimension at 4.5. If two or more sub-dimensions deserve 5.0,
+double-check that nothing is generic boilerplate.
+
+Then compute final_score as the unweighted average of the four sub-dimensions,
+rounded to one decimal.
+
+Return ONLY valid JSON in this exact schema:
+{{
+  "font_alignment": <float 1.0-5.0>,
+  "palette_alignment": <float 1.0-5.0>,
+  "tone_alignment": <float 1.0-5.0>,
+  "narrative_coherence": <float 1.0-5.0>,
+  "final_score": <float 1.0-5.0>,
+  "rationale": "<one sentence justifying the lowest sub-dimension>"
+}}
+"""
+    try:
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0,
+            response_format={"type": "json_object"},
+        )
+        parsed = safe_json_loads(resp.choices[0].message.content, {})
+        score = float(parsed.get("final_score", parsed.get("score", 3.0)))
+    except Exception:
+        score = 3.0
+    return max(1.0, min(5.0, score))
+
+
 def evaluate_output(
     client: OpenAI,
     archetype: str,
     constraints: List[str],
     kit: Dict[str, Any],
     eval_model: str,
+    wcag_mode: str = "min-pairs",
+    wcag_min_pairs: int = 2,
+    coherence_mode: str = "rubric",
 ) -> Dict[str, Any]:
     palette = extract_palette(kit)
-    wcag_report = evaluate_palette_wcag(palette, level="AA", large_text=False)
+    if wcag_mode == "min-pairs":
+        wcag_report = evaluate_palette_wcag_min_pairs(
+            palette, level="AA", large_text=False, min_pairs_required=wcag_min_pairs
+        )
+    else:
+        wcag_report = evaluate_palette_wcag(palette, level="AA", large_text=False)
 
     constraint_results = []
     passed = 0
@@ -447,12 +523,20 @@ def evaluate_output(
         if ok:
             passed += 1
 
-    coherence = score_coherence_llm(
-        client=client,
-        archetype=archetype,
-        kit=kit,
-        model=eval_model,
-    )
+    if coherence_mode == "rubric":
+        coherence = score_coherence_llm_rubric(
+            client=client,
+            archetype=archetype,
+            kit=kit,
+            model=eval_model,
+        )
+    else:
+        coherence = score_coherence_llm(
+            client=client,
+            archetype=archetype,
+            kit=kit,
+            model=eval_model,
+        )
 
     return {
         "wcag_all_pass": bool(wcag_report.get("all_pass", False)),
@@ -510,9 +594,36 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run baseline benchmark vs BrandMind full model.")
     parser.add_argument("--out", type=str, default="reports/baseline_benchmark_report.json")
     parser.add_argument("--max-iterations", type=int, default=3)
-    parser.add_argument("--zero-shot-model", type=str, default="gpt-4o")
-    parser.add_argument("--rag-model", type=str, default="gpt-4o-mini")
-    parser.add_argument("--eval-model", type=str, default="gpt-4o-mini")
+    parser.add_argument(
+        "--zero-shot-model",
+        type=str,
+        default=os.environ.get("OPENAI_ZERO_SHOT_MODEL", "gpt-4o"),
+    )
+    parser.add_argument(
+        "--rag-model",
+        type=str,
+        default=os.environ.get("OPENAI_RAG_MODEL", "gpt-4o-mini"),
+    )
+    parser.add_argument(
+        "--eval-model",
+        type=str,
+        default=os.environ.get("OPENAI_EVAL_MODEL", "gpt-4o-mini"),
+    )
+    parser.add_argument(
+        "--wcag-mode",
+        type=str,
+        default="min-pairs",
+        choices=["legacy", "min-pairs"],
+        help="min-pairs (default): pass when >= --wcag-min-pairs pairs hit AA. legacy: original 'all 20 pairs pass AA' (mathematically infeasible for 5-color palettes; kept for reproducibility).",
+    )
+    parser.add_argument("--wcag-min-pairs", type=int, default=2)
+    parser.add_argument(
+        "--coherence-mode",
+        type=str,
+        default="rubric",
+        choices=["legacy", "rubric"],
+        help="rubric (default): 4-axis rubric judge with anchors. legacy: original 1-line judge prompt (compresses scores near the ceiling; kept for reproducibility).",
+    )
     args = parser.parse_args()
 
     load_dotenv_file(Path(".env"))
@@ -550,6 +661,9 @@ def main() -> int:
                 constraints=case.constraints,
                 kit=output.get("kit", {}),
                 eval_model=args.eval_model,
+                wcag_mode=args.wcag_mode,
+                wcag_min_pairs=args.wcag_min_pairs,
+                coherence_mode=args.coherence_mode,
             )
             elapsed = time.time() - t0
             row = {

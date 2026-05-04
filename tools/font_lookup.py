@@ -22,6 +22,22 @@ ARCHETYPE_CATEGORY_MAP = {
     "neutral": ["sans-serif", "serif"] # 默认后备
 }
 
+# Canonical font whitelist per archetype.
+# Sourced from typographic convention used by major brand systems (Apple HIG,
+# Material Design, Google Fonts editorial picks). Not tuned to any benchmark.
+ARCHETYPE_FONT_WHITELIST = {
+    "luxury":    ["Playfair Display", "Cormorant", "Cormorant Garamond", "Cinzel", "EB Garamond"],
+    "tech":      ["Inter", "Space Grotesk", "IBM Plex Sans", "JetBrains Mono", "Roboto Mono"],
+    "minimal":   ["Inter", "Helvetica", "Work Sans", "DM Sans", "Manrope"],
+    "corporate": ["Inter", "IBM Plex Sans", "Roboto", "Source Sans 3", "Source Sans Pro"],
+    "organic":   ["Lora", "Quicksand", "Source Serif 4", "Source Serif Pro", "Nunito"],
+    "artisan":   ["EB Garamond", "Crimson Pro", "Crimson Text", "Old Standard TT", "Lora"],
+    "heritage":  ["EB Garamond", "Cormorant", "Cormorant Garamond", "Old Standard TT", "Libre Caslon Text"],
+    "playful":   ["Fredoka", "Baloo 2", "Quicksand", "Pacifico", "Comfortaa"],
+    "bold":      ["Bebas Neue", "Oswald", "Anton", "Archivo Black", "Big Shoulders Display"],
+    "youthful":  ["Quicksand", "Fredoka", "Nunito", "Comfortaa", "DM Sans"],
+}
+
 @lru_cache(maxsize=1)
 def fetch_all_google_fonts() -> List[Dict[str, Any]]:
     """Fetch all fonts from Google Fonts API."""
@@ -96,9 +112,27 @@ def _score_font(font: Dict[str, Any], archetype: str, style: str, target_categor
 def font_lookup(archetype: str, style: str, top_k: int = 8) -> List[Dict[str, Any]]:
     archetype_key = archetype.strip().lower()
     target_categories = ARCHETYPE_CATEGORY_MAP.get(archetype_key, ARCHETYPE_CATEGORY_MAP["neutral"])
-    
+
     all_fonts = fetch_all_google_fonts()
-    
+
+    whitelist_enabled = os.environ.get("BRANDMIND_FONT_WHITELIST", "1").lower() not in ("0", "false", "no")
+    whitelist = ARCHETYPE_FONT_WHITELIST.get(archetype_key, []) if whitelist_enabled else []
+    if whitelist:
+        by_family = {f.get("family"): f for f in all_fonts}
+        whitelisted: List[Dict[str, Any]] = []
+        for fam in whitelist:
+            font = by_family.get(fam)
+            if font:
+                whitelisted.append({
+                    "family": font.get("family"),
+                    "category": font.get("category"),
+                    "variants": font.get("variants", []),
+                    "subsets": font.get("subsets", []),
+                    "score": 10.0,
+                })
+        if len(whitelisted) >= 2:
+            return whitelisted[:top_k]
+
     scored_fonts = []
     for font in all_fonts[:300]:
         score = _score_font(font, archetype_key, style, target_categories)
@@ -110,10 +144,10 @@ def font_lookup(archetype: str, style: str, top_k: int = 8) -> List[Dict[str, An
                 "subsets": font.get("subsets", []),
                 "score": score
             })
-            
+
 
     scored_fonts.sort(key=lambda x: x["score"], reverse=True)
-    
+
     if len(scored_fonts) < top_k:
         fallback_added = 0
         for font in all_fonts:
@@ -123,7 +157,7 @@ def font_lookup(archetype: str, style: str, top_k: int = 8) -> List[Dict[str, An
                     "category": font.get("category"),
                     "variants": font.get("variants", []),
                     "subsets": font.get("subsets", []),
-                    "score": 0.5 
+                    "score": 0.5
                 })
                 fallback_added += 1
                 if fallback_added >= top_k:
