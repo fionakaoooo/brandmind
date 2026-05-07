@@ -240,30 +240,160 @@ def _industry_bonus(row: pd.Series, industry: str) -> float:
         return 0.0
     return 1.5 if query_industry in row_industry else 0.0
 
-
 def _constraint_penalty(
     hex_codes: List[str],
     stats: Dict[str, float],
     constraints: List[str],
 ) -> float:
+    """
+    Penalize palettes that violate explicit user constraints or
+    heuristic-derived generation constraints.
+
+    This version recognizes constraints produced by
+    heuristics_to_generation_constraints(), such as:
+    - Prefer cool neutral colors...
+    - Avoid high-saturation or neon-like colors.
+    - Use one controlled accent color against a neutral base.
+    - Use a limited palette...
+    """
     penalty = 0.0
-    constraint_text = " ".join(constraints).lower()
+    constraint_text = " ".join(str(c).lower() for c in constraints)
+
+    prefer_cool_neutral = (
+        "prefer cool neutral" in constraint_text
+        or "navy" in constraint_text
+        or "slate" in constraint_text
+        or "charcoal" in constraint_text
+        or "blue, or grey" in constraint_text
+        or "blue or grey" in constraint_text
+        or "cool blues" in constraint_text
+        or "cool neutral colors" in constraint_text
+    )
+
+    avoid_high_saturation = (
+        "avoid high-saturation" in constraint_text
+        or "avoid high saturation" in constraint_text
+        or "neon-like" in constraint_text
+        or "avoid neon" in constraint_text
+        or "no neon" in constraint_text
+        or "avoid harsh colors" in constraint_text
+        or "overly bright" in constraint_text
+        or "harsh colors" in constraint_text
+    )
+
+    one_controlled_accent = (
+        "one controlled accent" in constraint_text
+        or "neutral base" in constraint_text
+        or "single accent" in constraint_text
+        or "controlled accent" in constraint_text
+    )
+
+    limited_palette = (
+        "limited palette" in constraint_text
+        or "limited color palette" in constraint_text
+        or "clearly assigned functional roles" in constraint_text
+        or "minimal" in constraint_text
+        or "precision" in constraint_text
+    )
+
+    playful_or_kids = (
+        "playful" in constraint_text
+        or "children" in constraint_text
+        or "kids" in constraint_text
+        or "toy" in constraint_text
+        or "bright colors" in constraint_text
+    )
+
+    corporate_or_professional = (
+        "corporate" in constraint_text
+        or "professional" in constraint_text
+        or "enterprise" in constraint_text
+        or "fintech" in constraint_text
+        or "b2b" in constraint_text
+        or "trustworthy" in constraint_text
+        or "precise" in constraint_text
+    )
+
+    warm_or_earthy_requested = (
+        "warm" in constraint_text
+        or "earthy" in constraint_text
+        or "organic" in constraint_text
+        or "natural" in constraint_text
+        or "artisan" in constraint_text
+    )
+
+    accent_like_count = 0
+    very_saturated_count = 0
+    cool_neutral_like_count = 0
 
     for h in hex_codes:
+        if not HEX_RE.match(str(h).strip()):
+            continue
+
         hue, sat, val = _rgb_to_hsv_scaled(_hex_to_rgb(h))
 
-        if "no red" in constraint_text:
-            if hue < 25 or hue > 335:
-                penalty += 1.2
+        is_red = hue < 25 or hue > 335
+        is_orange_yellow = 25 <= hue <= 70
+        is_green_yellow = 70 < hue <= 170
+        is_cyan_blue = 170 < hue <= 260
+        is_purple_magenta = 260 < hue <= 335
+        is_neutralish = sat <= 0.18
+        is_dark_anchor = val <= 0.32
+        is_light_neutral = sat <= 0.20 and val >= 0.86
+        is_cool_hue = 185 <= hue <= 245
 
-        if "avoid harsh colors" in constraint_text:
-            if sat > 0.60:
+        if is_neutralish or is_dark_anchor or is_light_neutral or (is_cool_hue and sat <= 0.65):
+            cool_neutral_like_count += 1
+
+        if sat > 0.65:
+            very_saturated_count += 1
+
+        if sat > 0.55 and val > 0.55:
+            accent_like_count += 1
+
+        # Explicit red restriction.
+        if "no red" in constraint_text or "avoid red" in constraint_text:
+            if is_red:
+                penalty += 1.5
+
+        # General harsh/neon restriction.
+        if avoid_high_saturation:
+            if sat > 0.65:
                 penalty += 1.2
-            if val > 0.85 and sat > 0.45:
+            if sat > 0.72 and val > 0.80:
+                penalty += 1.8
+            if val > 0.88 and sat > 0.45:
                 penalty += 0.8
-            if hue < 25 or hue > 335:
-                penalty += 1.0
 
+        # Corporate / professional / fintech should avoid loud playful drift.
+        if corporate_or_professional:
+            if sat > 0.70 and val > 0.65:
+                penalty += 1.4
+            if is_purple_magenta and sat > 0.45:
+                penalty += 0.9
+            if is_green_yellow and sat > 0.45:
+                penalty += 0.9
+            if is_red and sat > 0.35:
+                penalty += 0.8
+
+        # Heuristic-derived cool neutral preference.
+        if prefer_cool_neutral:
+            if sat > 0.70 and val > 0.60:
+                penalty += 1.3
+
+            # Purple/magenta and yellow-green often hurt corporate trust tone.
+            if is_purple_magenta and sat > 0.40:
+                penalty += 1.0
+            if is_green_yellow and sat > 0.45:
+                penalty += 1.0
+            if is_red and sat > 0.35:
+                penalty += 0.8
+
+            # Warm colors are only penalized if the brief did not request warmth/earthiness.
+            if not warm_or_earthy_requested and is_orange_yellow and sat > 0.45:
+                penalty += 0.7
+
+        # Soft/calm/premium constraints still discourage saturation.
         if "soft" in constraint_text or "calm" in constraint_text:
             if sat > 0.60:
                 penalty += 0.8
@@ -272,15 +402,39 @@ def _constraint_penalty(
             if sat > 0.65:
                 penalty += 0.6
 
-    if "avoid harsh colors" in constraint_text:
+    # Palette-level penalties.
+    if avoid_high_saturation:
         if stats["avg_colorfulness"] > 0.55:
             penalty += 2.0
         if stats["avg_brightness"] > 0.82 and stats["avg_colorfulness"] > 0.45:
             penalty += 1.0
 
+    if prefer_cool_neutral:
+        # Require at least two colors that can plausibly serve as neutral/cool anchors.
+        if cool_neutral_like_count < 2:
+            penalty += 2.0
+
+        # Corporate palettes should not be mostly saturated accents.
+        if very_saturated_count >= 3:
+            penalty += 2.5
+
+    if one_controlled_accent:
+        # More than two accent-like colors violates "one controlled accent".
+        if accent_like_count > 2:
+            penalty += (accent_like_count - 2) * 1.4
+
+    if limited_palette:
+        # Penalize palettes where too many colors are visually loud.
+        if very_saturated_count >= 3:
+            penalty += 1.8
+
     if "soft" in constraint_text or "calm" in constraint_text:
         if stats["avg_colorfulness"] > 0.50:
             penalty += 1.2
+
+    # Playful/kids can tolerate saturation, so reduce over-penalization slightly.
+    if playful_or_kids and not corporate_or_professional:
+        penalty *= 0.75
 
     return penalty
 
@@ -315,10 +469,36 @@ def color_retrieve(
 
     requested_terms = {_normalize_col(x) for x in (emotions + style_keywords)}
     emoset_profile = _build_emoset_profile(emotions)
-    constraint_text = " ".join(constraints).lower()
+    constraint_text = " ".join(str(c).lower() for c in constraints)
+
     requires_wcag = any(
         kw in constraint_text
         for kw in ["wcag", "accessible", "accessibility", "contrast", "colorblind"]
+    )
+
+    prefer_cool_neutral = (
+        "prefer cool neutral" in constraint_text
+        or "navy" in constraint_text
+        or "slate" in constraint_text
+        or "charcoal" in constraint_text
+        or "cool neutral colors" in constraint_text
+    )
+
+    avoid_high_saturation = (
+        "avoid high-saturation" in constraint_text
+        or "avoid high saturation" in constraint_text
+        or "avoid neon" in constraint_text
+        or "no neon" in constraint_text
+        or "neon-like" in constraint_text
+        or "avoid harsh colors" in constraint_text
+        or "overly bright" in constraint_text
+        or "harsh colors" in constraint_text
+    )
+
+    one_controlled_accent = (
+        "one controlled accent" in constraint_text
+        or "neutral base" in constraint_text
+        or "single accent" in constraint_text
     )
 
     scored_rows: List[Dict[str, Any]] = []
@@ -332,36 +512,94 @@ def color_retrieve(
         industry_score = _industry_bonus(row, industry)
 
         hex_codes = [str(row[c]).strip() for c in hex_cols]
-        stats = _palette_stats(hex_codes)
+        valid_hex = [h for h in hex_codes if HEX_RE.match(str(h).strip())]
+        stats = _palette_stats(valid_hex)
 
-        brightness_gap = _distance(stats["avg_brightness"], emoset_profile["brightness_target"])
-        colorfulness_gap = _distance(stats["avg_colorfulness"], emoset_profile["colorfulness_target"])
-        emoset_alignment_score = max(0.0, 2.0 - (brightness_gap + colorfulness_gap) * 2.5)
+        brightness_gap = _distance(
+            stats["avg_brightness"],
+            emoset_profile["brightness_target"],
+        )
+        colorfulness_gap = _distance(
+            stats["avg_colorfulness"],
+            emoset_profile["colorfulness_target"],
+        )
+        emoset_alignment_score = max(
+            0.0,
+            2.0 - (brightness_gap + colorfulness_gap) * 2.5,
+        )
 
-        penalty = _constraint_penalty(hex_codes=hex_codes, stats=stats, constraints=constraints)
+        penalty = _constraint_penalty(
+            hex_codes=valid_hex,
+            stats=stats,
+            constraints=constraints,
+        )
 
-        wcag_stats = _pairwise_wcag_stats(hex_codes)
+        wcag_stats = _pairwise_wcag_stats(valid_hex)
         wcag_score = wcag_stats["pass_rate"] * 4.0
+
+        # Extra soft bonuses for heuristic-derived constraints.
+        cool_neutral_bonus = 0.0
+        controlled_accent_bonus = 0.0
+
+        if valid_hex:
+            hsvs = [_rgb_to_hsv_scaled(_hex_to_rgb(h)) for h in valid_hex]
+
+            neutral_or_cool_count = 0
+            accent_like_count = 0
+
+            for hue, sat, val in hsvs:
+                is_neutralish = sat <= 0.18
+                is_dark_anchor = val <= 0.32
+                is_light_neutral = sat <= 0.20 and val >= 0.86
+                is_cool_hue = 185 <= hue <= 245 and sat <= 0.65
+
+                if is_neutralish or is_dark_anchor or is_light_neutral or is_cool_hue:
+                    neutral_or_cool_count += 1
+
+                if sat > 0.55 and val > 0.55:
+                    accent_like_count += 1
+
+            if prefer_cool_neutral:
+                cool_neutral_bonus = min(1.5, neutral_or_cool_count * 0.35)
+
+            if one_controlled_accent and accent_like_count <= 2:
+                controlled_accent_bonus = 0.8
 
         total_score = (
             base_score
             + industry_score
             + emoset_alignment_score
             + wcag_score
+            + cool_neutral_bonus
+            + controlled_accent_bonus
             - (penalty * 2.0)
         )
 
+        # Stronger WCAG enforcement than before.
+        # Your previous version only deducted 2 points for pass_rate < 0.50,
+        # which allowed weak palettes to keep winning. 
         if requires_wcag:
-            if wcag_stats["pass_rate"] < 0.30:
-                total_score -= 4.0
-            elif wcag_stats["pass_rate"] < 0.50:
-                total_score -= 2.0
+            if wcag_stats["pass_rate"] < 0.50:
+                total_score -= 8.0
+            elif wcag_stats["pass_rate"] < 0.70:
+                total_score -= 3.5
 
-        if "avoid harsh colors" in constraint_text and penalty >= 2.5:
+        # Stronger heuristic enforcement.
+        if prefer_cool_neutral and penalty >= 3.0:
             total_score -= 4.0
 
+        if avoid_high_saturation and penalty >= 3.0:
+            total_score -= 4.0
+
+        # If a corporate/cool-neutral palette has too many loud accents, push it down.
+        if one_controlled_accent and penalty >= 3.0:
+            total_score -= 2.0
+
         scored_rows.append({
-            "palette_name": row.get("palette_name", row.get("name", f"palette_{len(scored_rows)+1}")),
+            "palette_name": row.get(
+                "palette_name",
+                row.get("name", f"palette_{len(scored_rows) + 1}"),
+            ),
             "hex_codes": hex_codes,
             "matched_emotions": sorted(list(requested_terms & row_label_set)),
             "available_labels": sorted(row_labels),
@@ -376,6 +614,10 @@ def color_retrieve(
             },
             "wcag_stats": wcag_stats,
             "penalty": round(penalty, 3),
+            "heuristic_bonus": {
+                "cool_neutral_bonus": round(cool_neutral_bonus, 3),
+                "controlled_accent_bonus": round(controlled_accent_bonus, 3),
+            },
             "total_score": round(total_score, 3),
         })
 
@@ -387,8 +629,12 @@ def color_retrieve(
             overlap = sum(1 for h in normalized if h in excluded_set)
             if overlap >= 1:
                 row["total_score"] -= overlap * 5.0
+
         scored_rows.sort(key=lambda x: x["total_score"], reverse=True)
-        print(f"[ColorRetrieve] Applied exclusion penalty for {len(excluded_set)} colors from previous palette.")
+        print(
+            f"[ColorRetrieve] Applied exclusion penalty for "
+            f"{len(excluded_set)} colors from previous palette."
+        )
 
     top = scored_rows[:top_k]
     best = top[0] if top else {}
@@ -397,7 +643,7 @@ def color_retrieve(
         f"Retrieved palettes by matching requested emotions/styles {sorted(requested_terms)} "
         f"against branding palette labels, reranked them using EmoSet-derived "
         f"brightness/colorfulness targets for {emotions}, explicit constraint penalties, "
-        f"and pairwise WCAG contrast scoring."
+        f"heuristic-derived palette constraints, and pairwise WCAG contrast scoring."
     )
 
     return {
