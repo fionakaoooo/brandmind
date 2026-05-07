@@ -4,8 +4,9 @@ Agent 2: Design Generator Agent
 - Reads archetype + constraints from shared BrandMindState
 - Infers a retrieval-friendly design spec
 - Retrieves real font candidates from Google Fonts
-- Retrieves/scored color palettes
 - Retrieves design heuristic rules
+- Converts heuristic rules into actionable generation constraints
+- Retrieves/scored color palettes using user + heuristic constraints
 - Assembles a structured draft brand kit
 """
 
@@ -21,7 +22,10 @@ from openai import OpenAI
 from state import BrandMindState
 from tools.font_lookup import font_lookup
 from tools.color_retrieve import color_retrieve
-from tools.heuristic_search import heuristic_search
+from tools.heuristic_search import (
+    heuristic_search,
+    heuristics_to_generation_constraints,
+)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -62,7 +66,6 @@ def _is_warm_or_earthy(hex_code: str) -> bool:
     h, s, v = _hex_to_hsv(hex_code)
     deg = h * 360.0
 
-    # red/orange/yellow/brown range, with enough saturation to be noticeable
     warm_hue = 0 <= deg <= 65
     earthy = 10 <= deg <= 55 and 0.20 <= s <= 0.75 and v <= 0.75
     return warm_hue or earthy
@@ -103,7 +106,7 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
 
     This does not replace the retrieval system. It only prevents obvious
     constraint violations like neon or red/warm colors when the user explicitly
-    requested avoiding them.
+    requested avoiding them, including heuristic-derived constraints.
     """
     if not hex_codes:
         return hex_codes
@@ -111,7 +114,13 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
     constraint_text = " ".join(str(c).lower() for c in constraints)
 
     avoid_red = "no red" in constraint_text or "avoid red" in constraint_text
-    avoid_neon = "no neon" in constraint_text or "avoid neon" in constraint_text
+    avoid_neon = (
+        "no neon" in constraint_text
+        or "avoid neon" in constraint_text
+        or "avoid high-saturation" in constraint_text
+        or "avoid high saturation" in constraint_text
+        or "neon-like" in constraint_text
+    )
     avoid_warm_earthy = (
         "no warm" in constraint_text
         or "avoid warm" in constraint_text
@@ -129,7 +138,6 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
         if not c.startswith("#"):
             c = "#" + c
 
-        # Normalize invalid-looking values defensively
         if len(c) != 7:
             continue
 
@@ -392,17 +400,11 @@ def retrieve_design_heuristics(
     state: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
     """
-    Improved heuristic retrieval.
-
-    1. Retrieve archetype-level rules first.
-    2. Retrieve brand-attribute-level rules second.
-    3. Deduplicate by rule id.
-    4. Deduplicate by rule text.
+    Retrieve archetype-level and attribute-level heuristic rules.
     """
     heuristics: List[Dict[str, Any]] = []
     weights = state.get("heuristic_weights")
 
-    # 1. Always retrieve archetype-level rules first.
     heuristics.extend(
         heuristic_search(
             archetype,
@@ -411,7 +413,6 @@ def retrieve_design_heuristics(
         )
     )
 
-    # 2. Then retrieve attribute-level rules.
     for attr in design_spec.get("brand_attributes", []):
         heuristics.extend(
             heuristic_search(
@@ -421,7 +422,6 @@ def retrieve_design_heuristics(
             )
         )
 
-    # 3. Deduplicate by rule id first.
     seen_rule_ids = set()
     deduped_heuristics: List[Dict[str, Any]] = []
 
@@ -431,19 +431,16 @@ def retrieve_design_heuristics(
             seen_rule_ids.add(rid)
             deduped_heuristics.append(rule)
 
-    heuristics = deduped_heuristics
-
-    # 4. Deduplicate by rule text as backup.
     seen_rule_texts = set()
-    deduped_heuristics = []
+    final_heuristics: List[Dict[str, Any]] = []
 
-    for item in heuristics:
+    for item in deduped_heuristics:
         rule_text = item.get("rule", "").strip()
         if rule_text and rule_text not in seen_rule_texts:
             seen_rule_texts.add(rule_text)
-            deduped_heuristics.append(item)
+            final_heuristics.append(item)
 
-    return deduped_heuristics[:8]
+    return final_heuristics[:8]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -457,6 +454,7 @@ def assemble_draft_brand_kit(
     palette_result: Dict[str, Any],
     heuristics: List[Dict[str, Any]],
     constraints: List[str],
+    heuristic_constraints: Dict[str, List[str]],
 ) -> Dict[str, Any]:
     palette = palette_result.get("best_palette", {})
     rules = [h.get("rule") for h in heuristics if h.get("rule")]
@@ -505,6 +503,7 @@ def assemble_draft_brand_kit(
             "font_candidates_seen": font_pair.get("headline_font"),
             "palette_candidates_seen": palette_result.get("top_k_palettes", []),
             "heuristics_used": heuristics,
+            "heuristic_generation_constraints": heuristic_constraints,
         },
     }
 
@@ -606,12 +605,28 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
 
     print(f"[Generator] Excluding {len(excluded_hex)} hex codes from previous drafts.")
 
-    # 4. Retrieve palette
+    # 4. Retrieve heuristics BEFORE palette retrieval
+    heuristics = retrieve_design_heuristics(
+        archetype=archetype,
+        design_spec=design_spec,
+        state=state,
+    )
+
+    heuristic_constraints = heuristics_to_generation_constraints(heuristics)
+    combined_constraints = constraints + heuristic_constraints.get("palette_constraints", [])
+
+    print(f"[Generator] Retrieved {len(heuristics)} heuristic rule(s).")
+    print(
+        "[Generator] Heuristic palette constraints: "
+        f"{heuristic_constraints.get('palette_constraints', [])}"
+    )
+
+    # 5. Retrieve palette using both user constraints and heuristic-derived constraints
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
         style_keywords=design_spec["style_keywords"],
-        constraints=constraints,
+        constraints=combined_constraints,
         top_k=5,
         excluded_hex=excluded_hex,
     )
@@ -623,7 +638,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         f"emotion_score={best.get('emotion_score', 0):.2f}"
     )
 
-    # 5. Fallback if retrieval quality is too low
+    # 6. Fallback if retrieval quality is too low
     if best.get("total_score", 0) < 3.0 or (
         archetype.lower() in ARCHETYPE_FALLBACK_PALETTES
         and best.get("emotion_score", 0) == 0.0
@@ -645,10 +660,10 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             "palette_rationale": f"Archetype-safe fallback palette for {archetype}.",
         }
 
-    # 6. Deterministic repair for obvious explicit constraints
+    # 7. Deterministic repair using user + heuristic constraints
     current_best = palette_result.get("best_palette", {})
     raw_hex = current_best.get("hex_codes", [])
-    repaired_hex = repair_palette(raw_hex, constraints)
+    repaired_hex = repair_palette(raw_hex, combined_constraints)
 
     if repaired_hex != raw_hex:
         print(f"[Generator] Palette repair applied: {raw_hex} -> {repaired_hex}")
@@ -656,15 +671,6 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             **current_best,
             "hex_codes": repaired_hex,
         }
-
-    # 7. Retrieve design heuristics using improved logic
-    heuristics = retrieve_design_heuristics(
-        archetype=archetype,
-        design_spec=design_spec,
-        state=state,
-    )
-
-    print(f"[Generator] Retrieved {len(heuristics)} heuristic rule(s).")
 
     # 8. Assemble draft brand kit
     draft_brand_kit = assemble_draft_brand_kit(
@@ -674,6 +680,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         palette_result=palette_result,
         heuristics=heuristics,
         constraints=constraints,
+        heuristic_constraints=heuristic_constraints,
     )
 
     # 9. Optional one-paragraph design rationale
@@ -740,4 +747,3 @@ if __name__ == "__main__":
 
     output = design_generator_agent(test_state)
     print(json.dumps(output["draft_brand_kit"], indent=2, ensure_ascii=False))
-
