@@ -1,3 +1,4 @@
+%%writefile /content/brandmind/tools/heuristic_search.py
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
@@ -90,7 +91,6 @@ _RULE_BANK: Dict[str, List[Dict[str, Any]]] = {
         {"rule": "Use conservative blues or greys to project stability.", "id": "corporate_1"},
         {"rule": "Maintain strict typographic hierarchy across all touchpoints.", "id": "corporate_2"},
     ],
-
     "eco_friendly": [
         {"rule": "Use muted, natural greens and earth tones; avoid synthetic-looking hues.", "id": "eco_friendly_0"},
         {"rule": "Favour organic shapes and textures that signal handmade or natural origin.", "id": "eco_friendly_1"},
@@ -243,11 +243,19 @@ _RULE_BANK: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
-@@ -108,198 +275,198 @@
-        ...
-    ]
-    """
-    attr = (brand_attribute or "").strip().lower()
+
+def _default_weights() -> Dict[str, float]:
+    return {
+        rule["id"]: 1.0
+        for rules in _RULE_BANK.values()
+        for rule in rules
+    }
+
+
+def heuristic_search(
+    brand_attribute: str,
+    weights: Optional[Dict[str, float]] = None,
+) -> List[Dict[str, Any]]:
     attr = (brand_attribute or "").strip().lower().replace("-", "_").replace(" ", "_")
     w = weights or {}
 
@@ -271,19 +279,11 @@ _RULE_BANK: Dict[str, List[Dict[str, Any]]] = {
     return sorted(enriched, key=lambda r: r["weight"], reverse=True)
 
 
-# ── Weight initialisation helper ──────────────────────────────────────────────
-
 def initialise_weights(state: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    确保 state 中存在 heuristic_weights。
-    只在缺失时初始化，不覆盖已有权重。
-    """
     if not state.get("heuristic_weights"):
         state = {**state, "heuristic_weights": _default_weights()}
     return state
 
-
-# ── Helper: find which rules were actually used ───────────────────────────────
 
 def _extract_used_rule_ids(state: Dict[str, Any]) -> List[str]:
     explicit_ids = state.get("used_heuristic_rule_ids") or []
@@ -300,56 +300,26 @@ def _extract_used_rule_ids(state: Dict[str, Any]) -> List[str]:
         for rules in _RULE_BANK.values()
         for rule in rules
     }
-
     return [text_to_id[r] for r in design_rules if r in text_to_id]
 
 
-# ── Helper: compute continuous feedback from qc_scores ────────────────────────
-
 def _compute_feedback_score(qc_scores: Dict[str, Any]) -> float:
-    """
-    从 Agent 3 的 qc_scores 里构造连续反馈分数，范围大致在 [0, 1]。
-
-    结构兼容你现在的 qc_agent:
-    {
-      "wcag": {"pass_rate": ...},
-      "coherence": {"score": ...},     # 1~5
-      "constraints": {"pass_rate": ...},
-      ...
-    }
-    """
     if not qc_scores:
         return BASELINE_SCORE
 
-    wcag_pass_rate = float(qc_scores.get("wcag", {}).get("pass_rate", 0.0))
-    coherence_score = float(qc_scores.get("coherence", {}).get("score", 0.0)) / 5.0
+    wcag_pass_rate       = float(qc_scores.get("wcag", {}).get("pass_rate", 0.0))
+    coherence_score      = float(qc_scores.get("coherence", {}).get("score", 0.0)) / 5.0
     constraint_pass_rate = float(qc_scores.get("constraints", {}).get("pass_rate", 0.0))
 
-    # 连续反馈：不是 pass/fail 二元，而是综合三项质量
     feedback_score = (
         0.40 * wcag_pass_rate
-        + 0.35 * coherence_score
-        + 0.25 * constraint_pass_rate
+      + 0.35 * coherence_score
+      + 0.25 * constraint_pass_rate
     )
+    return max(0.0, min(1.0, round(feedback_score, 4)))
 
-    # 防守性裁剪
-    feedback_score = max(0.0, min(1.0, feedback_score))
-    return round(feedback_score, 4)
-
-
-# ── Main update function ──────────────────────────────────────────────────────
 
 def update_heuristic_weights(state: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    用 qc_scores 连续更新当前 draft 用到的 heuristic rule 权重。
-
-    更新逻辑：
-        delta = LEARNING_RATE * (feedback_score - BASELINE_SCORE)
-
-    含义：
-    - 如果 feedback_score > baseline，权重上升
-    - 如果 feedback_score < baseline，权重下降
-    """
     weights: Dict[str, float] = dict(state.get("heuristic_weights") or _default_weights())
     used_ids = _extract_used_rule_ids(state)
     qc_scores = state.get("qc_scores") or {}
@@ -371,19 +341,10 @@ def update_heuristic_weights(state: Dict[str, Any]) -> Dict[str, Any]:
         f"[HeuristicSearch] Continuous update applied to {len(used_ids)} rule(s). "
         f"feedback_score={feedback_score:.4f}, delta={delta:+.4f}"
     )
+    return {**state, "heuristic_weights": weights}
 
-    return {
-        **state,
-        "heuristic_weights": weights,
-    }
-
-
-# ── Utility: inspect top rules ────────────────────────────────────────────────
 
 def get_top_rules(weights: Dict[str, float], top_k: int = 10) -> List[Dict[str, Any]]:
-    """
-    返回当前全局权重最高的 top_k 条规则，便于调试和可视化。
-    """
     all_rules = [
         {
             "attribute": attr,
@@ -397,27 +358,20 @@ def get_top_rules(weights: Dict[str, float], top_k: int = 10) -> List[Dict[str, 
     return sorted(all_rules, key=lambda x: x["weight"], reverse=True)[:top_k]
 
 
-# ── Utility: inspect a single attribute's rules ───────────────────────────────
-
 def inspect_attribute_rules(
     attribute: str,
     weights: Optional[Dict[str, float]] = None,
 ) -> List[Dict[str, Any]]:
-    """
-    查看某个 attribute 下规则当前权重排序结果。
-    """
     return heuristic_search(attribute, weights=weights)
 
-
-# ── Smoke test ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     mock_state: Dict[str, Any] = {
         "heuristic_weights": None,
         "draft_brand_kit": {
             "design_rules": [
-                "Use restrained color contrast and generous whitespace.",   # premium_0
-                "Favor earthy or natural hues and softer saturation.",      # organic_0
+                "Use restrained color contrast and generous whitespace.",
+                "Favor earthy or natural hues and softer saturation.",
             ]
         },
         "qc_scores": {
@@ -428,16 +382,13 @@ if __name__ == "__main__":
     }
 
     mock_state = initialise_weights(mock_state)
-    print("Initial weights (sample):", list(mock_state["heuristic_weights"].items())[:5])
+    print("Total rules:", sum(len(v) for v in _RULE_BANK.values()))
+    print("Total attributes:", len(_RULE_BANK))
 
     mock_state = update_heuristic_weights(mock_state)
 
     print("\nUpdated premium rules:")
     for r in inspect_attribute_rules("premium", weights=mock_state["heuristic_weights"]):
-        print(f"  [{r['weight']:.4f}] {r['id']} -> {r['rule']}")
-
-    print("\nUpdated organic rules:")
-    for r in inspect_attribute_rules("organic", weights=mock_state["heuristic_weights"]):
         print(f"  [{r['weight']:.4f}] {r['id']} -> {r['rule']}")
 
     print("\nTop 5 rules overall:")
