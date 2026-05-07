@@ -9,7 +9,6 @@ MIN_WEIGHT = 0.10
 MAX_WEIGHT = 3.00
 
 
-
 ATTRIBUTE_ALIASES: Dict[str, str] = {
     # sustainability / organic
     "eco-friendly": "sustainable",
@@ -406,7 +405,6 @@ def _with_weights(
 def _fallback_rules(attr: str) -> List[Dict[str, Any]]:
     """
     Better fallback rules when no direct rule-bank key exists.
-    These are still generic, but less placeholder-like than the old fallback.
     """
     return [
         {
@@ -466,7 +464,8 @@ def heuristic_search(
     ranked = _with_weights(candidates, weights)
     return ranked[: max(1, int(top_k))]
 
-    def heuristics_to_generation_constraints(
+
+def heuristics_to_generation_constraints(
     heuristics: List[Dict[str, Any]],
 ) -> Dict[str, List[str]]:
     """
@@ -491,67 +490,218 @@ def heuristic_search(
     for h in heuristics:
         rule_text = str(h.get("rule", "")).lower()
         tags = h.get("constraint_tags", []) or []
-        target = str(h.get("target", "")).lower()
 
         # Prefer explicit tags when available.
         if "prefer_cool_neutral" in tags:
-            add(palette_constraints, "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.")
+            add(
+                palette_constraints,
+                "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.",
+            )
 
         if "avoid_high_saturation" in tags:
-            add(palette_constraints, "Avoid high-saturation or neon-like colors.")
+            add(
+                palette_constraints,
+                "Avoid high-saturation or neon-like colors.",
+            )
 
         if "one_controlled_accent" in tags:
-            add(palette_constraints, "Use one controlled accent color against a neutral base.")
+            add(
+                palette_constraints,
+                "Use one controlled accent color against a neutral base.",
+            )
 
         if "limited_palette" in tags:
-            add(palette_constraints, "Use a limited palette with clearly assigned functional roles.")
+            add(
+                palette_constraints,
+                "Use a limited palette with clearly assigned functional roles.",
+            )
 
         if "bright_accent_allowed" in tags:
-            add(palette_constraints, "Allow bright accent colors only if contrast remains readable.")
+            add(
+                palette_constraints,
+                "Allow bright accent colors only if contrast remains readable.",
+            )
 
         if "rounded_friendly_type" in tags:
-            add(font_constraints, "Prefer rounded, friendly, highly readable typefaces.")
+            add(
+                font_constraints,
+                "Prefer rounded, friendly, highly readable typefaces.",
+            )
 
         if "neutral_sans" in tags:
-            add(font_constraints, "Prefer established neutral sans-serif typefaces.")
+            add(
+                font_constraints,
+                "Prefer established neutral sans-serif typefaces.",
+            )
 
         if "geometric_or_mono" in tags:
-            add(font_constraints, "Prefer geometric sans or monospaced typefaces for precision.")
+            add(
+                font_constraints,
+                "Prefer geometric sans or monospaced typefaces for precision.",
+            )
 
         if "grid_layout" in tags:
-            add(layout_constraints, "Use structured grid-based layouts with consistent spacing.")
+            add(
+                layout_constraints,
+                "Use structured grid-based layouts with consistent spacing.",
+            )
 
         if "generous_whitespace" in tags:
-            add(layout_constraints, "Use generous whitespace and reduce visual clutter.")
+            add(
+                layout_constraints,
+                "Use generous whitespace and reduce visual clutter.",
+            )
 
         # Backward-compatible fallback for rules without metadata.
         if not tags:
-            if any(x in rule_text for x in ["conservative blues", "neutral anchors", "deep navy", "charcoal"]):
-                add(palette_constraints, "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.")
+            if any(
+                x in rule_text
+                for x in [
+                    "conservative blues",
+                    "neutral anchors",
+                    "deep navy",
+                    "charcoal",
+                    "cool blues",
+                    "cool, desaturated palettes",
+                ]
+            ):
+                add(
+                    palette_constraints,
+                    "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.",
+                )
 
-            if any(x in rule_text for x in ["avoid loud", "avoid playful color", "avoid warm or playful", "high-saturation"]):
-                add(palette_constraints, "Avoid high-saturation or neon-like colors.")
+            if any(
+                x in rule_text
+                for x in [
+                    "avoid loud",
+                    "avoid playful color",
+                    "avoid warm or playful",
+                    "high-saturation",
+                    "highly saturated",
+                    "neon",
+                ]
+            ):
+                add(
+                    palette_constraints,
+                    "Avoid high-saturation or neon-like colors.",
+                )
 
-            if any(x in rule_text for x in ["limited color palette", "strictly limited color"]):
-                add(palette_constraints, "Use a limited palette with clearly assigned functional roles.")
+            if any(
+                x in rule_text
+                for x in [
+                    "one controlled accent",
+                    "single electric accent",
+                    "one unexpected accent",
+                    "single accent",
+                ]
+            ):
+                add(
+                    palette_constraints,
+                    "Use one controlled accent color against a neutral base.",
+                )
 
-            if any(x in rule_text for x in ["rounded", "friendly typography"]):
-                add(font_constraints, "Prefer rounded, friendly, highly readable typefaces.")
+            if any(
+                x in rule_text
+                for x in [
+                    "limited color palette",
+                    "strictly limited color",
+                    "limited palette",
+                    "two or three carefully chosen colors",
+                ]
+            ):
+                add(
+                    palette_constraints,
+                    "Use a limited palette with clearly assigned functional roles.",
+                )
 
-            if any(x in rule_text for x in ["neutral families", "strong legibility", "sans-serif"]):
-                add(font_constraints, "Prefer established neutral sans-serif typefaces.")
+            if any(
+                x in rule_text
+                for x in [
+                    "bright accents",
+                    "brighter accents",
+                    "vibrant accent",
+                    "saturated accent",
+                ]
+            ):
+                add(
+                    palette_constraints,
+                    "Allow bright accent colors only if contrast remains readable.",
+                )
 
-            if any(x in rule_text for x in ["grid", "alignment", "consistent spacing"]):
-                add(layout_constraints, "Use structured grid-based layouts with consistent spacing.")
+            if any(
+                x in rule_text
+                for x in [
+                    "rounded",
+                    "friendly typography",
+                    "friendly display typefaces",
+                ]
+            ):
+                add(
+                    font_constraints,
+                    "Prefer rounded, friendly, highly readable typefaces.",
+                )
 
-            if any(x in rule_text for x in ["whitespace", "negative space", "visual clutter"]):
-                add(layout_constraints, "Use generous whitespace and reduce visual clutter.")
+            if any(
+                x in rule_text
+                for x in [
+                    "neutral families",
+                    "strong legibility",
+                    "established, neutral",
+                    "functional sans-serif",
+                ]
+            ):
+                add(
+                    font_constraints,
+                    "Prefer established neutral sans-serif typefaces.",
+                )
+
+            if any(
+                x in rule_text
+                for x in [
+                    "monospaced",
+                    "geometric typefaces",
+                    "geometric sans",
+                ]
+            ):
+                add(
+                    font_constraints,
+                    "Prefer geometric sans or monospaced typefaces for precision.",
+                )
+
+            if any(
+                x in rule_text
+                for x in [
+                    "grid",
+                    "alignment",
+                    "consistent spacing",
+                    "pixel-precise",
+                ]
+            ):
+                add(
+                    layout_constraints,
+                    "Use structured grid-based layouts with consistent spacing.",
+                )
+
+            if any(
+                x in rule_text
+                for x in [
+                    "whitespace",
+                    "negative space",
+                    "visual clutter",
+                    "generous margins",
+                ]
+            ):
+                add(
+                    layout_constraints,
+                    "Use generous whitespace and reduce visual clutter.",
+                )
 
     return {
         "palette_constraints": palette_constraints,
         "font_constraints": font_constraints,
         "layout_constraints": layout_constraints,
     }
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # State helpers for LangGraph
@@ -611,7 +761,6 @@ def update_heuristic_weights(
 
     try:
         overall_score = float(qc_scores.get("overall_score", BASELINE_SCORE * 5.0))
-        # If overall_score is on 0-5 scale, normalize to 0-1.
         if overall_score > 1.0:
             normalized_score = overall_score / 5.0
         else:
@@ -656,3 +805,8 @@ if __name__ == "__main__":
         print(f"\nAttribute: {attr}")
         for r in heuristic_search(attr):
             print(f"  - [{r['id']}] {r['rule']} | weight={r['weight']}")
+
+    print("\nConstraint conversion smoke test:")
+    sample_rules = heuristic_search("corporate") + heuristic_search("precise")
+    converted = heuristics_to_generation_constraints(sample_rules)
+    print(converted)
