@@ -621,6 +621,14 @@ def qc_agent(state: BrandMindState) -> BrandMindState:
         }
 
     print("[QC] Draft failed. Sending revision feedback to Generator.")
+    state = update_heuristic_weights(
+    {
+        **state,
+        "qc_scores": qc_scores,
+        "draft_brand_kit": draft_brand_kit,
+    }
+)
+
     
     return {
         **state,
