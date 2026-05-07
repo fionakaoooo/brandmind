@@ -1,5 +1,12 @@
 """
 Agent 2: Design Generator Agent
+
+- Reads archetype + constraints from shared BrandMindState
+- Infers a retrieval-friendly design spec
+- Retrieves real font candidates from Google Fonts
+- Retrieves/scored color palettes
+- Retrieves design heuristic rules
+- Assembles a structured draft brand kit
 """
 
 from __future__ import annotations
@@ -17,14 +24,22 @@ from tools.color_retrieve import color_retrieve
 from tools.heuristic_search import heuristic_search
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Color utility helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
 def _hex_to_hsv(hex_code: str):
-    s = hex_code.strip().lstrip("#")
+    s = str(hex_code).strip().lstrip("#")
     r, g, b = (int(s[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
     return colorsys.rgb_to_hsv(r, g, b)
 
 
 def _hsv_to_hex(h: float, s: float, v: float) -> str:
-    r, g, b = colorsys.hsv_to_rgb(h % 1.0, max(0.0, min(1.0, s)), max(0.0, min(1.0, v)))
+    r, g, b = colorsys.hsv_to_rgb(
+        h % 1.0,
+        max(0.0, min(1.0, s)),
+        max(0.0, min(1.0, v)),
+    )
     return "#" + "".join(f"{int(round(c * 255)):02X}" for c in (r, g, b))
 
 
@@ -37,6 +52,20 @@ def _is_reddish(hex_code: str) -> bool:
     h, _, _ = _hex_to_hsv(hex_code)
     deg = h * 360.0
     return deg < 20.0 or deg > 340.0
+
+
+def _is_warm_or_earthy(hex_code: str) -> bool:
+    """
+    Rough HSV-based detector for warm / earthy tones.
+    Used only for lightweight repair when user explicitly says no warm/earthy.
+    """
+    h, s, v = _hex_to_hsv(hex_code)
+    deg = h * 360.0
+
+    # red/orange/yellow/brown range, with enough saturation to be noticeable
+    warm_hue = 0 <= deg <= 65
+    earthy = 10 <= deg <= 55 and 0.20 <= s <= 0.75 and v <= 0.75
+    return warm_hue or earthy
 
 
 def _desaturate_neon(hex_code: str) -> str:
@@ -56,21 +85,76 @@ def _shift_red_to_amber(hex_code: str) -> str:
     return _hsv_to_hex(h, s, v)
 
 
+def _shift_warm_to_cool(hex_code: str) -> str:
+    """
+    Shift warm/earthy colors toward blue/slate while preserving approximate
+    saturation/value. This is intentionally simple and deterministic.
+    """
+    _, s, v = _hex_to_hsv(hex_code)
+    h = 210.0 / 360.0
+    s = min(s, 0.55)
+    v = max(0.25, min(v, 0.85))
+    return _hsv_to_hex(h, s, v)
+
+
 def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
+    """
+    Lightweight deterministic palette repair.
+
+    This does not replace the retrieval system. It only prevents obvious
+    constraint violations like neon or red/warm colors when the user explicitly
+    requested avoiding them.
+    """
     if not hex_codes:
         return hex_codes
+
+    constraint_text = " ".join(str(c).lower() for c in constraints)
+
+    avoid_red = "no red" in constraint_text or "avoid red" in constraint_text
+    avoid_neon = "no neon" in constraint_text or "avoid neon" in constraint_text
+    avoid_warm_earthy = (
+        "no warm" in constraint_text
+        or "avoid warm" in constraint_text
+        or "no earthy" in constraint_text
+        or "avoid earthy" in constraint_text
+        or "no warm or earthy" in constraint_text
+    )
+
     out: List[str] = []
+
     for code in hex_codes:
         c = str(code).strip()
+        if not c:
+            continue
         if not c.startswith("#"):
             c = "#" + c
-        if _is_reddish(c):
+
+        # Normalize invalid-looking values defensively
+        if len(c) != 7:
+            continue
+
+        try:
+            _hex_to_hsv(c)
+        except Exception:
+            continue
+
+        if avoid_red and _is_reddish(c):
             c = _shift_red_to_amber(c)
-        if _is_neon(c):
+
+        if avoid_warm_earthy and _is_warm_or_earthy(c):
+            c = _shift_warm_to_cool(c)
+
+        if avoid_neon and _is_neon(c):
             c = _desaturate_neon(c)
+
         out.append(c.upper())
+
     return out
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LLM provider helpers
+# ─────────────────────────────────────────────────────────────────────────────
 
 def _resolve_provider() -> str:
     explicit = os.environ.get("LLM_PROVIDER", "").strip().lower()
@@ -87,8 +171,12 @@ def _get_client() -> OpenAI:
             api_key=os.environ.get("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
+
     base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
-    return OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=base_url)
+    return OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+        base_url=base_url,
+    )
 
 
 def _get_model() -> str:
@@ -99,53 +187,72 @@ def _get_model() -> str:
 
 client = _get_client()
 
-# Canonical descriptor lexicon per archetype.
-# Sourced from Mark & Pearson, "The Hero and the Outlaw" (2001) and standard
-# brand-strategy practice. Not tuned to any benchmark.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Archetype tone injection + fallback palettes
+# ─────────────────────────────────────────────────────────────────────────────
+
 ARCHETYPE_TONE_LEXICON = {
     "corporate": ["trustworthy", "reliable", "professional", "established", "authoritative"],
-    "tech":      ["precise", "modern", "innovative", "intelligent", "efficient"],
-    "minimal":   ["simple", "intentional", "refined", "uncluttered", "deliberate"],
-    "organic":   ["natural", "calming", "grounded", "sustainable", "gentle"],
-    "luxury":    ["premium", "refined", "timeless", "exclusive", "sophisticated"],
-    "playful":   ["energetic", "joyful", "lighthearted", "spontaneous", "fun"],
-    "bold":      ["confident", "decisive", "daring", "assertive", "dynamic"],
-    "artisan":   ["handmade", "authentic", "warm", "craft-driven", "neighborly"],
-    "heritage":  ["traditional", "enduring", "rooted", "established", "time-honored"],
-    "youthful":  ["vibrant", "fresh", "optimistic", "lively", "energetic"],
+    "tech": ["precise", "modern", "innovative", "intelligent", "efficient"],
+    "minimal": ["simple", "intentional", "refined", "uncluttered", "deliberate"],
+    "organic": ["natural", "calming", "grounded", "sustainable", "gentle"],
+    "luxury": ["premium", "refined", "timeless", "exclusive", "sophisticated"],
+    "playful": ["energetic", "joyful", "lighthearted", "spontaneous", "fun"],
+    "bold": ["confident", "decisive", "daring", "assertive", "dynamic"],
+    "artisan": ["handmade", "authentic", "warm", "craft-driven", "neighborly"],
+    "heritage": ["traditional", "enduring", "rooted", "established", "time-honored"],
+    "youthful": ["vibrant", "fresh", "optimistic", "lively", "energetic"],
 }
 
 
-def _inject_archetype_tokens(archetype: str, existing: List[str], cap: int = 8) -> List[str]:
-    enabled = os.environ.get("BRANDMIND_TONE_INJECTION", "1").lower() not in ("0", "false", "no")
+ARCHETYPE_FALLBACK_PALETTES = {
+    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
+    "tech": ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
+    "minimal": ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
+    "organic": ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
+    "luxury": ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
+    "playful": ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
+    "bold": ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
+    "artisan": ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
+    "heritage": ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
+    "youthful": ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
+}
+
+
+def _inject_archetype_tokens(
+    archetype: str,
+    existing: List[str],
+    cap: int = 8,
+) -> List[str]:
+    enabled = os.environ.get("BRANDMIND_TONE_INJECTION", "1").lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+
     if not enabled:
         return list(existing or [])[:cap]
+
     canonical = ARCHETYPE_TONE_LEXICON.get((archetype or "").strip().lower(), [])
     if not canonical:
         return list(existing or [])[:cap]
-    seen: set = set()
+
+    seen: set[str] = set()
     merged: List[str] = []
+
     for token in list(canonical) + list(existing or []):
         norm = str(token).strip().lower()
         if norm and norm not in seen:
             seen.add(norm)
             merged.append(str(token).strip())
+
     return merged[:cap]
 
 
-ARCHETYPE_FALLBACK_PALETTES = {
-    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
-    "tech":      ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
-    "minimal":   ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
-    "organic":   ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
-    "luxury":    ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
-    "playful":   ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
-    "bold":      ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
-    "artisan":   ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
-    "heritage":  ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
-    "youthful":  ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
-}
-
+# ─────────────────────────────────────────────────────────────────────────────
+# JSON helpers
+# ─────────────────────────────────────────────────────────────────────────────
 
 def _safe_json_loads(text: str) -> Dict[str, Any]:
     try:
@@ -154,6 +261,10 @@ def _safe_json_loads(text: str) -> Dict[str, Any]:
         return {}
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 1: infer design spec
+# ─────────────────────────────────────────────────────────────────────────────
+
 def infer_design_spec(
     brand_brief: str,
     archetype: str,
@@ -161,9 +272,9 @@ def infer_design_spec(
     clip_context: str = "",
     qc_feedback: str = "",
 ) -> Dict[str, Any]:
-
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
+
     feedback_section = (
         f"""
 REVISION MODE - You MUST address all of the following QC failures.
@@ -171,7 +282,8 @@ Each item below is a constraint that the previous draft FAILED.
 Your output spec must directly fix every listed issue:
 {qc_feedback}
 """
-        if qc_feedback else ""
+        if qc_feedback
+        else ""
     )
 
     prompt = f"""
@@ -188,6 +300,7 @@ Brand brief:
 Constraints:
 {constraint_text}
 {clip_section}{feedback_section}
+
 Return ONLY valid JSON in this schema:
 {{
   "industry": "<one short phrase>",
@@ -231,17 +344,21 @@ Rules:
         "tone_keywords": spec.get("tone_keywords", [archetype.lower()])[:5],
         "palette_notes": spec.get(
             "palette_notes",
-            f"The palette should reinforce a {archetype.lower()} brand feeling."
+            f"The palette should reinforce a {archetype.lower()} brand feeling.",
         ),
     }
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 2: font pairing
+# ─────────────────────────────────────────────────────────────────────────────
 
 def choose_font_pair(font_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
     if not font_candidates:
         return {
             "headline_font": None,
             "body_font": None,
-            "rationale": "No font candidates returned."
+            "rationale": "No font candidates returned.",
         }
 
     headline = font_candidates[0]
@@ -261,9 +378,77 @@ def choose_font_pair(font_candidates: List[Dict[str, Any]]) -> Dict[str, Any]:
         "rationale": (
             f"Selected {headline.get('family')} as the expressive/display face and "
             f"{body.get('family')} as the supporting/body face."
-        )
+        ),
     }
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 3: heuristic retrieval
+# ─────────────────────────────────────────────────────────────────────────────
+
+def retrieve_design_heuristics(
+    archetype: str,
+    design_spec: Dict[str, Any],
+    state: Dict[str, Any],
+) -> List[Dict[str, Any]]:
+    """
+    Improved heuristic retrieval.
+
+    1. Retrieve archetype-level rules first.
+    2. Retrieve brand-attribute-level rules second.
+    3. Deduplicate by rule id.
+    4. Deduplicate by rule text.
+    """
+    heuristics: List[Dict[str, Any]] = []
+    weights = state.get("heuristic_weights")
+
+    # 1. Always retrieve archetype-level rules first.
+    heuristics.extend(
+        heuristic_search(
+            archetype,
+            weights=weights,
+            top_k=3,
+        )
+    )
+
+    # 2. Then retrieve attribute-level rules.
+    for attr in design_spec.get("brand_attributes", []):
+        heuristics.extend(
+            heuristic_search(
+                attr,
+                weights=weights,
+                top_k=2,
+            )
+        )
+
+    # 3. Deduplicate by rule id first.
+    seen_rule_ids = set()
+    deduped_heuristics: List[Dict[str, Any]] = []
+
+    for rule in heuristics:
+        rid = rule.get("id")
+        if rid and rid not in seen_rule_ids:
+            seen_rule_ids.add(rid)
+            deduped_heuristics.append(rule)
+
+    heuristics = deduped_heuristics
+
+    # 4. Deduplicate by rule text as backup.
+    seen_rule_texts = set()
+    deduped_heuristics = []
+
+    for item in heuristics:
+        rule_text = item.get("rule", "").strip()
+        if rule_text and rule_text not in seen_rule_texts:
+            seen_rule_texts.add(rule_text)
+            deduped_heuristics.append(item)
+
+    return deduped_heuristics[:8]
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 4: assemble final draft brand kit
+# ─────────────────────────────────────────────────────────────────────────────
 
 def assemble_draft_brand_kit(
     archetype: str,
@@ -276,8 +461,15 @@ def assemble_draft_brand_kit(
     palette = palette_result.get("best_palette", {})
     rules = [h.get("rule") for h in heuristics if h.get("rule")]
 
-    enriched_tone_keywords = _inject_archetype_tokens(archetype, design_spec.get("tone_keywords", []))
-    enriched_brand_attrs = _inject_archetype_tokens(archetype, design_spec.get("brand_attributes", []))
+    enriched_tone_keywords = _inject_archetype_tokens(
+        archetype,
+        design_spec.get("tone_keywords", []),
+    )
+
+    enriched_brand_attrs = _inject_archetype_tokens(
+        archetype,
+        design_spec.get("brand_attributes", []),
+    )
 
     return {
         "archetype": archetype,
@@ -298,7 +490,10 @@ def assemble_draft_brand_kit(
             "industry_bonus": palette.get("industry_bonus", 0.0),
             "emotion_score": palette.get("emotion_score", 0.0),
             "emoset_alignment": palette.get("emoset_alignment", {}),
-            "palette_rationale": palette_result.get("rationale"),
+            "palette_rationale": (
+                palette.get("palette_rationale")
+                or palette_result.get("rationale")
+            ),
         },
         "design_rules": rules,
         "constraints_checked_later": constraints,
@@ -310,15 +505,20 @@ def assemble_draft_brand_kit(
             "font_candidates_seen": font_pair.get("headline_font"),
             "palette_candidates_seen": palette_result.get("top_k_palettes", []),
             "heuristics_used": heuristics,
-        }
+        },
     }
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Optional narrative rationale
+# ─────────────────────────────────────────────────────────────────────────────
 
 def generate_archetype_alignment(archetype: str, kit: Dict[str, Any]) -> str:
     headline = (kit.get("font_recommendation") or {}).get("headline") or {}
     body = (kit.get("font_recommendation") or {}).get("body") or {}
     palette_hex = (kit.get("color_palette") or {}).get("hex_codes") or []
     tone_keywords = (kit.get("tone_and_voice_seed") or {}).get("tone_keywords") or []
+
     prompt = (
         "You are a senior brand designer writing a one-paragraph design rationale "
         "for a brand book. In 2-3 sentences (max 80 words), explain how the chosen "
@@ -332,6 +532,7 @@ def generate_archetype_alignment(archetype: str, kit: Dict[str, Any]) -> str:
         f"Tone keywords: {tone_keywords}\n\n"
         'Return ONLY valid JSON: {"rationale": "<2-3 sentences>"}'
     )
+
     try:
         resp = client.chat.completions.create(
             model=_get_model(),
@@ -345,19 +546,27 @@ def generate_archetype_alignment(archetype: str, kit: Dict[str, Any]) -> str:
             return text
     except Exception as exc:
         print(f"[Generator] archetype_alignment narrative FAILED: {exc}")
+
     return (
         f"This {archetype} kit pairs the chosen typography and palette to reinforce "
         f"the archetype's core register."
     )
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Main Agent 2 node
+# ─────────────────────────────────────────────────────────────────────────────
+
 def design_generator_agent(state: BrandMindState) -> BrandMindState:
+    print("\n[Generator] Starting design generation...")
+
     brand_brief = state["brand_brief"]
     archetype = state["archetype"]
-    constraints = state.get("design_constraints", [])
-    clip_context = state.get("clip_context", "")
+    constraints = state.get("design_constraints") or state.get("constraints") or []
+    clip_context = state.get("clip_context", "") or state.get("clip_features", "")
     qc_feedback = state.get("qc_feedback", "")
 
+    # 1. Infer retrieval-friendly design spec
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
@@ -366,24 +575,38 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         qc_feedback=qc_feedback,
     )
 
+    print(f"[Generator] Design spec industry: {design_spec.get('industry')}")
+    print(f"[Generator] Design spec emotions: {design_spec.get('primary_emotions')}")
+    print(f"[Generator] Design spec attributes: {design_spec.get('brand_attributes')}")
+
+    # 2. Retrieve fonts
     font_candidates = font_lookup(
         archetype=archetype,
         style=design_spec["font_style"],
-        top_k=8
+        top_k=8,
     )
     font_pair = choose_font_pair(font_candidates)
 
+    print(
+        "[Generator] Font pair: "
+        f"{(font_pair.get('headline_font') or {}).get('family')} + "
+        f"{(font_pair.get('body_font') or {}).get('family')}"
+    )
+
+    # 3. Exclude palette colors from previous failed drafts
     excluded_hex: List[str] = []
     revision_history = state.get("revision_history", [])
+
     for entry in revision_history:
         prev_kit = entry.get("draft_brand_kit", {})
         prev_hex = (prev_kit.get("color_palette") or {}).get("hex_codes", [])
         for h in prev_hex:
             if h not in excluded_hex:
                 excluded_hex.append(h)
-    print(f"[Generator] Excluding {len(excluded_hex)} hex codes from all previous drafts.")
 
+    print(f"[Generator] Excluding {len(excluded_hex)} hex codes from previous drafts.")
 
+    # 4. Retrieve palette
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
         industry=design_spec["industry"],
@@ -394,16 +617,27 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     )
 
     best = palette_result.get("best_palette", {})
-    print(f"[Generator] Best palette score={best.get('total_score', 0):.2f}, emotion_score={best.get('emotion_score', 0):.2f}")
+    print(
+        "[Generator] Best palette: "
+        f"score={best.get('total_score', 0):.2f}, "
+        f"emotion_score={best.get('emotion_score', 0):.2f}"
+    )
+
+    # 5. Fallback if retrieval quality is too low
     if best.get("total_score", 0) < 3.0 or (
         archetype.lower() in ARCHETYPE_FALLBACK_PALETTES
         and best.get("emotion_score", 0) == 0.0
     ):
         fallback_hex = ARCHETYPE_FALLBACK_PALETTES.get(
             archetype.lower(),
-            ["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"]
+            ["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"],
         )
-        print(f"[Generator] Low-quality palette detected, using archetype fallback: {fallback_hex}")
+
+        print(
+            "[Generator] Low-quality palette detected, "
+            f"using archetype fallback: {fallback_hex}"
+        )
+
         palette_result["best_palette"] = {
             **best,
             "hex_codes": fallback_hex,
@@ -411,42 +645,98 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
             "palette_rationale": f"Archetype-safe fallback palette for {archetype}.",
         }
 
+    # 6. Deterministic repair for obvious explicit constraints
     current_best = palette_result.get("best_palette", {})
     raw_hex = current_best.get("hex_codes", [])
     repaired_hex = repair_palette(raw_hex, constraints)
+
     if repaired_hex != raw_hex:
         print(f"[Generator] Palette repair applied: {raw_hex} -> {repaired_hex}")
-        palette_result["best_palette"] = {**current_best, "hex_codes": repaired_hex}
+        palette_result["best_palette"] = {
+            **current_best,
+            "hex_codes": repaired_hex,
+        }
 
-    heuristics: List[Dict[str, Any]] = []
-    for attr in design_spec["brand_attributes"]:
-        heuristics.extend(heuristic_search(attr))
+    # 7. Retrieve design heuristics using improved logic
+    heuristics = retrieve_design_heuristics(
+        archetype=archetype,
+        design_spec=design_spec,
+        state=state,
+    )
 
-    seen = set()
-    deduped_heuristics = []
-    for item in heuristics:
-        rule = item.get("rule", "").strip()
-        if rule and rule not in seen:
-            seen.add(rule)
-            deduped_heuristics.append(item)
+    print(f"[Generator] Retrieved {len(heuristics)} heuristic rule(s).")
 
+    # 8. Assemble draft brand kit
     draft_brand_kit = assemble_draft_brand_kit(
         archetype=archetype,
         design_spec=design_spec,
         font_pair=font_pair,
         palette_result=palette_result,
-        heuristics=deduped_heuristics[:6],
+        heuristics=heuristics,
         constraints=constraints,
     )
 
+    # 9. Optional one-paragraph design rationale
     if os.environ.get("BRANDMIND_NARRATIVE", "1").lower() not in ("0", "false", "no"):
-        draft_brand_kit["archetype_alignment"] = generate_archetype_alignment(archetype, draft_brand_kit)
+        draft_brand_kit["archetype_alignment"] = generate_archetype_alignment(
+            archetype,
+            draft_brand_kit,
+        )
 
+    # 10. Write back to shared state
     state["design_spec"] = design_spec
     state["draft_brand_kit"] = draft_brand_kit
     state["generator_output"] = {
         "status": "draft_ready",
-        "message": "Agent 2 assembled a draft brand kit using retrieved fonts, colors, and design rules."
+        "message": (
+            "Agent 2 assembled a draft brand kit using retrieved fonts, "
+            "colors, and design rules."
+        ),
     }
 
+    print("[Generator] Draft brand kit ready.")
+
     return state
+
+
+# Compatibility alias, in case graph.py imports generator_agent instead.
+generator_agent = design_generator_agent
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Manual smoke test
+# ─────────────────────────────────────────────────────────────────────────────
+
+if __name__ == "__main__":
+    test_state: BrandMindState = {
+        "brand_brief": (
+            "Nimbus Ledger is a B2B fintech platform for cross-border invoices. "
+            "The brand identity should feel trustworthy, precise, and modern for "
+            "enterprise finance teams. The color palette must be WCAG AA accessible. "
+            "Avoid neon colors. Avoid serif fonts."
+        ),
+        "clip_features": None,
+        "archetype": "Tech",
+        "archetype_rationale": "A technical fintech product fits the Tech archetype.",
+        "design_constraints": [
+            "Color palette must be WCAG AA accessible",
+            "No neon colors",
+            "No serif fonts",
+        ],
+        "constraints": [
+            "Color palette must be WCAG AA accessible",
+            "No neon colors",
+            "No serif fonts",
+        ],
+        "draft_brand_kit": None,
+        "qc_feedback": None,
+        "qc_scores": None,
+        "heuristic_weights": None,
+        "iteration_count": 0,
+        "status": "generating",
+        "revision_history": [],
+        "approved_brand_kit": None,
+    }
+
+    output = design_generator_agent(test_state)
+    print(json.dumps(output["draft_brand_kit"], indent=2, ensure_ascii=False))
