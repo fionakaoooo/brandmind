@@ -466,6 +466,92 @@ def heuristic_search(
     ranked = _with_weights(candidates, weights)
     return ranked[: max(1, int(top_k))]
 
+    def heuristics_to_generation_constraints(
+    heuristics: List[Dict[str, Any]],
+) -> Dict[str, List[str]]:
+    """
+    Convert retrieved heuristic rules into concrete generator constraints.
+
+    This makes heuristic retrieval actionable instead of only explanatory.
+    The returned constraints can be passed into color_retrieve, font_lookup,
+    or later layout modules.
+    """
+    palette_constraints: List[str] = []
+    font_constraints: List[str] = []
+    layout_constraints: List[str] = []
+
+    seen = set()
+
+    def add(bucket: List[str], text: str) -> None:
+        key = text.strip().lower()
+        if key and key not in seen:
+            seen.add(key)
+            bucket.append(text)
+
+    for h in heuristics:
+        rule_text = str(h.get("rule", "")).lower()
+        tags = h.get("constraint_tags", []) or []
+        target = str(h.get("target", "")).lower()
+
+        # Prefer explicit tags when available.
+        if "prefer_cool_neutral" in tags:
+            add(palette_constraints, "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.")
+
+        if "avoid_high_saturation" in tags:
+            add(palette_constraints, "Avoid high-saturation or neon-like colors.")
+
+        if "one_controlled_accent" in tags:
+            add(palette_constraints, "Use one controlled accent color against a neutral base.")
+
+        if "limited_palette" in tags:
+            add(palette_constraints, "Use a limited palette with clearly assigned functional roles.")
+
+        if "bright_accent_allowed" in tags:
+            add(palette_constraints, "Allow bright accent colors only if contrast remains readable.")
+
+        if "rounded_friendly_type" in tags:
+            add(font_constraints, "Prefer rounded, friendly, highly readable typefaces.")
+
+        if "neutral_sans" in tags:
+            add(font_constraints, "Prefer established neutral sans-serif typefaces.")
+
+        if "geometric_or_mono" in tags:
+            add(font_constraints, "Prefer geometric sans or monospaced typefaces for precision.")
+
+        if "grid_layout" in tags:
+            add(layout_constraints, "Use structured grid-based layouts with consistent spacing.")
+
+        if "generous_whitespace" in tags:
+            add(layout_constraints, "Use generous whitespace and reduce visual clutter.")
+
+        # Backward-compatible fallback for rules without metadata.
+        if not tags:
+            if any(x in rule_text for x in ["conservative blues", "neutral anchors", "deep navy", "charcoal"]):
+                add(palette_constraints, "Prefer cool neutral colors such as navy, slate, charcoal, blue, or grey.")
+
+            if any(x in rule_text for x in ["avoid loud", "avoid playful color", "avoid warm or playful", "high-saturation"]):
+                add(palette_constraints, "Avoid high-saturation or neon-like colors.")
+
+            if any(x in rule_text for x in ["limited color palette", "strictly limited color"]):
+                add(palette_constraints, "Use a limited palette with clearly assigned functional roles.")
+
+            if any(x in rule_text for x in ["rounded", "friendly typography"]):
+                add(font_constraints, "Prefer rounded, friendly, highly readable typefaces.")
+
+            if any(x in rule_text for x in ["neutral families", "strong legibility", "sans-serif"]):
+                add(font_constraints, "Prefer established neutral sans-serif typefaces.")
+
+            if any(x in rule_text for x in ["grid", "alignment", "consistent spacing"]):
+                add(layout_constraints, "Use structured grid-based layouts with consistent spacing.")
+
+            if any(x in rule_text for x in ["whitespace", "negative space", "visual clutter"]):
+                add(layout_constraints, "Use generous whitespace and reduce visual clutter.")
+
+    return {
+        "palette_constraints": palette_constraints,
+        "font_constraints": font_constraints,
+        "layout_constraints": layout_constraints,
+    }
 
 # ─────────────────────────────────────────────────────────────────────────────
 # State helpers for LangGraph
