@@ -374,10 +374,15 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     font_pair = choose_font_pair(font_candidates)
 
     excluded_hex: List[str] = []
-    if qc_feedback and state.get("draft_brand_kit"):
-        prev_palette = state["draft_brand_kit"].get("color_palette", {})
-        excluded_hex = prev_palette.get("hex_codes", [])
-    print(f"[Generator] Excluding {len(excluded_hex)} hex codes from previous draft.")
+    revision_history = state.get("revision_history", [])
+    for entry in revision_history:
+        prev_kit = entry.get("draft_brand_kit", {})
+        prev_hex = (prev_kit.get("color_palette") or {}).get("hex_codes", [])
+        for h in prev_hex:
+            if h not in excluded_hex:
+                excluded_hex.append(h)
+    print(f"[Generator] Excluding {len(excluded_hex)} hex codes from all previous drafts.")
+
 
     palette_result = color_retrieve(
         emotions=design_spec["primary_emotions"],
