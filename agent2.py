@@ -645,7 +645,58 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     ):
         fallback_hex = ARCHETYPE_FALLBACK_PALETTES.get(
             archetype.lower(),
-            ["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"],
+            ARCHETYPE_FALLBACK_PALETTES = {
+    "corporate": [
+        ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
+        ["#1B2A4A", "#F0F4FF", "#3A5FA0", "#E8ECF4", "#0D1B2A"],
+        ["#0F2044", "#FFFFFF", "#4A6FA5", "#EEF2F7", "#1C2D4A"],
+    ],
+    "tech": [
+        ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
+        ["#0A0E1A", "#1E2A3A", "#2E4A6A", "#4FC3F7", "#FFFFFF"],
+        ["#050D18", "#0D2137", "#1A3A5C", "#38BDF8", "#F0F9FF"],
+    ],
+    "minimal": [
+        ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
+        ["#111111", "#FAFAFA", "#E8E8E8", "#444444", "#999999"],
+        ["#0D0D0D", "#F8F8F8", "#EFEFEF", "#555555", "#AAAAAA"],
+    ],
+    "organic": [
+        ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
+        ["#2D4A3E", "#4A7C59", "#8FAF8C", "#EDE8D0", "#7A4F2E"],
+        ["#1F3528", "#3D6647", "#7A9E78", "#F5F0E0", "#6B3F20"],
+    ],
+    "luxury": [
+        ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
+        ["#0D0D0D", "#C9A227", "#F5F5F5", "#1A1A1A", "#E8C84A"],
+        ["#141414", "#A07C10", "#FAFAFA", "#242424", "#BF9B30"],
+    ],
+    "playful": [
+        ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
+        ["#FF8E8E", "#FFD93D", "#6BCFCA", "#FFFFFF", "#354A5E"],
+        ["#FF5252", "#FFCA28", "#26C6DA", "#FFFFFF", "#263238"],
+    ],
+    "bold": [
+        ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
+        ["#D62839", "#14213D", "#FFFFFF", "#3A6B8A", "#E8F4EA"],
+        ["#C1121F", "#0D1B2A", "#FFFFFF", "#2E5D7E", "#F0F7F0"],
+    ],
+    "artisan": [
+        ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
+        ["#5C3820", "#C89060", "#FDF8E0", "#BDC9A0", "#DCEAB8"],
+        ["#4A2C18", "#BC7D4D", "#FEF6E0", "#AEC090", "#D0E4A8"],
+    ],
+    "heritage": [
+        ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
+        ["#1E0F08", "#7A3A10", "#C05A18", "#EDD09E", "#F8F0E0"],
+        ["#140A04", "#6A2D0D", "#B04E14", "#E5C890", "#F5EBD8"],
+    ],
+    "youthful": [
+        ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
+        ["#FF85AD", "#D45579", "#FFCA00", "#00C8E8", "#FFFFFF"],
+        ["#FF4D8D", "#B83560", "#F0A800", "#00A0C8", "#FAFAFA"],
+    ],
+}
         )
 
         print(
