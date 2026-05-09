@@ -8,7 +8,6 @@ Run: streamlit run app.py
 import streamlit as st
 import sys
 import os
-import time
 
 sys.path.insert(0, os.path.dirname(__file__))
 
@@ -77,8 +76,8 @@ html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
 .font-display { font-size: 18px; font-weight: 500; color: #F0F6FC; }
 .font-meta { font-size: 12px; color: #8B949E; margin-top: 2px; }
 
-.palette-row { display: flex; gap: 8px; }
-.swatch-col { flex: 1; }
+.palette-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.swatch-col { flex: 1; min-width: 40px; }
 .swatch { height: 44px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); }
 .swatch-hex {
     font-size: 10px; color: #8B949E; text-align: center;
@@ -172,15 +171,40 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Helper ────────────────────────────────────────────────────────────────────
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def cclass(v, hi=0.8, lo=0.5):
+    """Return CSS class name based on numeric threshold."""
+    try:
+        v = float(v or 0)
+    except (TypeError, ValueError):
+        v = 0.0
     return "green" if v >= hi else ("yellow" if v >= lo else "red")
 
+
 def badge(s):
-    if s == "pass":      return '<span class="badge-pass">✓ Pass</span>'
-    if s == "fail":      return '<span class="badge-fail">✗ Fail</span>'
+    if s == "pass":
+        return '<span class="badge-pass">✓ Pass</span>'
+    if s == "fail":
+        return '<span class="badge-fail">✗ Fail</span>'
     return '<span class="badge-uncertain">? Uncertain</span>'
+
+
+def safe_str(val, fallback="—", maxlen=None):
+    """Safely convert a value to string with optional truncation."""
+    result = str(val).strip() if val is not None else fallback
+    if not result:
+        result = fallback
+    if maxlen and len(result) > maxlen:
+        result = result[:maxlen] + "..."
+    return result
+
+
+def safe_float(val, fallback=0.0):
+    try:
+        return float(val or fallback)
+    except (TypeError, ValueError):
+        return fallback
 
 
 # ── Layout ────────────────────────────────────────────────────────────────────
@@ -219,36 +243,20 @@ with col_input:
 
     generate = st.button("✦  Generate brand kit")
 
+    # FIXED: replaced fake animated steps with real blocking spinner
     if generate and brief.strip():
-        loading_steps = [
-            ("Agent 1", "Classifying brand archetype..."),
-            ("Agent 1", "Extracting explicit & implicit constraints..."),
-            ("Agent 2", "Retrieving font candidates from Google Fonts..."),
-            ("Agent 2", "Scoring color palettes against EmoSet targets..."),
-            ("Agent 2", "Applying design heuristics..."),
-            ("Agent 3", "Running WCAG 2.1 AA compliance check..."),
-            ("Agent 3", "Scoring archetype coherence (LLM judge)..."),
-            ("Agent 3", "Verifying constraint satisfaction..."),
-        ]
-        placeholder = st.empty()
-        for agent, text in loading_steps:
-            placeholder.markdown(
-                f"<div style='font-size:13px;color:#8B949E;padding:4px 0'>"
-                f"<span style='color:#58A6FF;font-weight:500'>{agent}</span>"
-                f"&nbsp;&nbsp;{text}</div>",
-                unsafe_allow_html=True,
-            )
-            time.sleep(0.45)
-        placeholder.empty()
-
         try:
             from graph import run_pipeline
-            state = run_pipeline(brand_brief=brief.strip(), max_iterations=3)
+            with st.spinner("Running 3-agent pipeline... (~30–45s)"):
+                state = run_pipeline(brand_brief=brief.strip(), max_iterations=3)
             st.session_state["result"] = state
             st.session_state["error"] = None
         except Exception as e:
             st.session_state["error"] = str(e)
             st.session_state["result"] = None
+
+    elif generate and not brief.strip():
+        st.warning("Please enter a brand brief before generating.")
 
 
 # ── Output panel ──────────────────────────────────────────────────────────────
@@ -259,15 +267,17 @@ with col_output:
         st.error(f"Pipeline error: {st.session_state['error']}")
 
     elif st.session_state.get("result"):
-        state     = st.session_state["result"]
-        kit       = state.get("approved_brand_kit") or state.get("draft_brand_kit") or {}
-        qc        = state.get("qc_scores") or {}
-        status    = state.get("status", "—")
-        iterations = state.get("iteration_count", 0)
-        history   = state.get("revision_history") or []
+        state = st.session_state["result"]
+
+        # FIXED: safe extraction of all top-level fields
+        kit = state.get("approved_brand_kit") or state.get("draft_brand_kit") or {}
+        qc = state.get("qc_scores") or {}
+        status = safe_str(state.get("status"), fallback="—")
+        iterations = int(state.get("iteration_count") or 0)
+        history = state.get("revision_history") or []
 
         # ── Status tag ────────────────────────────────────────────────────────
-        tag_cls  = "approved" if status == "approved" else "failed"
+        tag_cls = "approved" if status == "approved" else "failed"
         tag_text = "approved ✓" if status == "approved" else f"max iterations ({iterations})"
         st.markdown(
             f'<div class="status-tag {tag_cls}">Pipeline: {tag_text}</div>',
@@ -279,18 +289,30 @@ with col_output:
             best_iter = max(
                 range(len(history)),
                 key=lambda i: (
-                    (history[i].get("qc_scores") or {}).get("constraints", {}).get("pass_count", 0),
-                    (history[i].get("qc_scores") or {}).get("overall_score", 0),
-                )
+                    safe_float(
+                        (history[i].get("qc_scores") or {})
+                        .get("constraints", {})
+                        .get("pass_count", 0)
+                    ),
+                    safe_float(
+                        (history[i].get("qc_scores") or {})
+                        .get("overall_score", 0)
+                    ),
+                ),
             )
             dots = ""
             for i, entry in enumerate(history):
-                entry_status = entry.get("status", "failed")
-                overall = (entry.get("qc_scores") or {}).get("overall_score", 0)
-                dot_cls = "pass" if entry_status == "approved" else ("best" if i == best_iter else "fail")
+                entry_status = safe_str(entry.get("status"), fallback="failed")
+                overall = safe_float(
+                    (entry.get("qc_scores") or {}).get("overall_score", 0)
+                )
+                dot_cls = (
+                    "pass" if entry_status == "approved"
+                    else ("best" if i == best_iter else "fail")
+                )
                 dots += (
                     f'<div style="text-align:center">'
-                    f'<div class="iter-dot {dot_cls}">{i+1}</div>'
+                    f'<div class="iter-dot {dot_cls}">{i + 1}</div>'
                     f'<div class="iter-label">{overall:.2f}</div>'
                     f'</div>'
                 )
@@ -303,51 +325,61 @@ with col_output:
             )
 
         # ── Archetype ─────────────────────────────────────────────────────────
-        archetype = kit.get("archetype") or state.get("archetype") or "—"
-        rationale = state.get("archetype_rationale") or "—"
-        alignment = kit.get("archetype_alignment", "")
+        archetype = safe_str(
+            kit.get("archetype") or state.get("archetype"), fallback="—"
+        )
+        rationale = safe_str(state.get("archetype_rationale"), fallback="—")
+        alignment = safe_str(kit.get("archetype_alignment"), fallback="")
 
         st.markdown(f"""
         <div class="archetype-block">
             <div class="section-label">Archetype · Agent 1</div>
             <div class="archetype-name">{archetype}</div>
             <div class="archetype-rationale">{rationale}</div>
-            {f'<div class="alignment-block">{alignment}</div>' if alignment else ''}
+            {f'<div class="alignment-block">{alignment}</div>' if alignment and alignment != "—" else ''}
         </div>
         """, unsafe_allow_html=True)
 
         # ── QC scores ─────────────────────────────────────────────────────────
-        wcag_rate = qc.get("wcag", {}).get("pass_rate", 0)
-        coherence = qc.get("coherence", {}).get("score", 0)
-        con_rate  = qc.get("constraints", {}).get("pass_rate", 0)
+        # FIXED: safe extraction with fallback to 0, coherence already 1-5 scale
+        wcag_rate = safe_float((qc.get("wcag") or {}).get("pass_rate"))
+        coherence = safe_float((qc.get("coherence") or {}).get("score"))
+        con_rate = safe_float((qc.get("constraints") or {}).get("pass_rate"))
+
+        # coherence is 1-5, normalize to 0-1 for cclass
+        coherence_normalized = coherence / 5.0
 
         st.markdown(f"""
         <div class="section-label" style="margin-top:0.25rem">QC scores · Agent 3</div>
         <div class="score-row">
             <div class="score-card">
-                <div class="score-val {cclass(coherence/5,0.8,0.7)}">{coherence:.1f}<span style="font-size:13px;color:#8B949E">/5</span></div>
+                <div class="score-val {cclass(coherence_normalized, 0.8, 0.7)}">
+                    {coherence:.1f}<span style="font-size:13px;color:#8B949E">/5</span>
+                </div>
                 <div class="score-label">Archetype coherence</div>
             </div>
             <div class="score-card">
-                <div class="score-val {cclass(wcag_rate)}">{int(wcag_rate*100)}%</div>
+                <div class="score-val {cclass(wcag_rate)}">{int(wcag_rate * 100)}%</div>
                 <div class="score-label">WCAG AA pass rate</div>
             </div>
             <div class="score-card">
-                <div class="score-val {cclass(con_rate)}">{int(con_rate*100)}%</div>
+                <div class="score-val {cclass(con_rate)}">{int(con_rate * 100)}%</div>
                 <div class="score-label">Constraint satisfaction</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         # ── Font pairing ──────────────────────────────────────────────────────
-        fonts    = kit.get("font_recommendation") or {}
+        fonts = kit.get("font_recommendation") or {}
         headline = fonts.get("headline") or {}
-        body_f   = fonts.get("body") or {}
-        h_name   = headline.get("family", "—")
-        b_name   = body_f.get("family", "—")
-        h_cat    = headline.get("category", "")
-        b_cat    = body_f.get("category", "")
-        pairing  = (fonts.get("pairing_rationale") or "")[:140]
+        body_f = fonts.get("body") or {}
+
+        # FIXED: safe extraction with fallback strings
+        h_name = safe_str(headline.get("family"), fallback="—")
+        b_name = safe_str(body_f.get("family"), fallback="—")
+        h_cat = safe_str(headline.get("category"), fallback="")
+        b_cat = safe_str(body_f.get("category"), fallback="")
+        pairing = safe_str(fonts.get("pairing_rationale"), fallback="", maxlen=140)
 
         st.markdown(f"""
         <div class="kit-card">
@@ -360,16 +392,18 @@ with col_output:
                 <div class="font-display">{b_name}</div>
                 <div class="font-meta">Body · {b_cat}</div>
             </div>
-            <div style="font-size:12px;color:#8B949E;margin-top:8px;font-style:italic">{pairing}</div>
+            {f'<div style="font-size:12px;color:#8B949E;margin-top:8px;font-style:italic">{pairing}</div>' if pairing else ''}
         </div>
         """, unsafe_allow_html=True)
 
         # ── Color palette ─────────────────────────────────────────────────────
         palette_data = kit.get("color_palette") or {}
-        hex_codes    = [
+
+        # FIXED: show up to 7 colors (fallback palettes now include WCAG anchors)
+        hex_codes = [
             h for h in (palette_data.get("hex_codes") or [])
             if isinstance(h, str) and h.startswith("#") and len(h) == 7
-        ][:5]
+        ][:7]
 
         if hex_codes:
             swatches = "".join([
@@ -379,40 +413,50 @@ with col_output:
                 f'</div>'
                 for h in hex_codes
             ])
-            emotions     = palette_data.get("matched_emotions") or []
-            emotion_html = "".join([f'<span class="tone-chip">{e}</span>' for e in emotions[:4]])
-            pal_note     = (palette_data.get("palette_rationale") or "")[:120]
+            emotions = palette_data.get("matched_emotions") or []
+            emotion_html = "".join([
+                f'<span class="tone-chip">{safe_str(e)}</span>'
+                for e in emotions[:4]
+                if e
+            ])
+            pal_note = safe_str(
+                palette_data.get("palette_rationale"), fallback="", maxlen=120
+            )
             st.markdown(f"""
             <div class="kit-card">
                 <div class="section-label">Color palette · Agent 2</div>
                 <div class="palette-row">{swatches}</div>
-                <div style="margin-top:10px">{emotion_html}</div>
+                {f'<div style="margin-top:10px">{emotion_html}</div>' if emotion_html else ''}
                 {f'<div style="font-size:12px;color:#484F58;margin-top:8px;line-height:1.5">{pal_note}</div>' if pal_note else ''}
             </div>
             """, unsafe_allow_html=True)
 
         # ── Tone & voice ──────────────────────────────────────────────────────
-        tone_seed    = kit.get("tone_and_voice_seed") or {}
-        tone_kws     = tone_seed.get("tone_keywords") or []
-        palette_note = tone_seed.get("palette_notes", "")
+        tone_seed = kit.get("tone_and_voice_seed") or {}
+        tone_kws = tone_seed.get("tone_keywords") or []
+        palette_note = safe_str(tone_seed.get("palette_notes"), fallback="")
 
         if tone_kws:
-            chips = "".join([f'<span class="tone-chip">{t}</span>' for t in tone_kws[:8]])
+            chips = "".join([
+                f'<span class="tone-chip">{safe_str(t)}</span>'
+                for t in tone_kws[:8]
+                if t
+            ])
             st.markdown(f"""
             <div class="kit-card">
                 <div class="section-label">Tone &amp; voice · Agent 2</div>
                 <div>{chips}</div>
-                <div style="font-size:13px;color:#8B949E;margin-top:10px;line-height:1.6">{palette_note}</div>
+                {f'<div style="font-size:13px;color:#8B949E;margin-top:10px;line-height:1.6">{palette_note}</div>' if palette_note else ''}
             </div>
             """, unsafe_allow_html=True)
 
         # ── Design rules ──────────────────────────────────────────────────────
-        rules = (kit.get("design_rules") or [])[:5]
+        rules = [r for r in (kit.get("design_rules") or []) if r][:5]
         if rules:
             rules_html = "".join([
                 f'<div class="rule-item">'
                 f'<span style="color:#3FB950;flex-shrink:0">·</span>'
-                f'<span>{r}</span></div>'
+                f'<span>{safe_str(r)}</span></div>'
                 for r in rules
             ])
             st.markdown(f"""
@@ -427,17 +471,18 @@ with col_output:
         if con_items:
             rows = "".join([
                 f'<div class="constraint-row">'
-                f'<span>{item.get("constraint","")[:60]}</span>'
-                f'{badge(item.get("status",""))}'
+                f'<span>{safe_str(item.get("constraint"), maxlen=60)}</span>'
+                f'{badge(safe_str(item.get("status"), fallback="uncertain"))}'
                 f'</div>'
                 for item in con_items[:8]
             ])
-            pass_n  = sum(1 for i in con_items if i.get("status") == "pass")
+            pass_n = sum(1 for i in con_items if i.get("status") == "pass")
             total_n = len(con_items)
             st.markdown(f"""
             <div class="kit-card">
-                <div class="section-label">Constraint verification · Agent 3 &nbsp;
-                    <span style="color:#8B949E;font-weight:400;text-transform:none;letter-spacing:0">
+                <div class="section-label">Constraint verification · Agent 3
+                    &nbsp;<span style="color:#8B949E;font-weight:400;
+                    text-transform:none;letter-spacing:0">
                         {pass_n}/{total_n} passed
                     </span>
                 </div>
