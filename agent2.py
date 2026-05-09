@@ -613,24 +613,23 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     # 3. Exclude palette colors from previous failed drafts
     excluded_hex: List[str] = []
     revision_history = state.get("revision_history", [])
-
     for entry in revision_history:
         qc = entry.get("qc_scores", {})
         wcag = qc.get("wcag", {})
 
-
-        failed_backgrounds = [
-            item.get("background")
+    
+        failed_backgrounds = set(
+            item.get("bg")
             for item in wcag.get("color_checks", [])
-            if not item.get("passes", False)
-            and item.get("background")
-        ]
+            if not item.get("passes_AA", True)
+            and item.get("bg")
+        )
 
         for h in failed_backgrounds:
             if h and h not in excluded_hex:
                 excluded_hex.append(h)
 
-  
+    
         constraint_items = (qc.get("constraints") or {}).get("items", [])
         for item in constraint_items:
             if item.get("status") == "fail":
