@@ -615,12 +615,32 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     revision_history = state.get("revision_history", [])
 
     for entry in revision_history:
-        prev_kit = entry.get("draft_brand_kit", {})
-        prev_hex = (prev_kit.get("color_palette") or {}).get("hex_codes", [])
-        for h in prev_hex:
-            if h not in excluded_hex:
+        qc = entry.get("qc_scores", {})
+        wcag = qc.get("wcag", {})
+
+
+        failed_backgrounds = [
+            item.get("background")
+            for item in wcag.get("color_checks", [])
+            if not item.get("passes", False)
+            and item.get("background")
+        ]
+
+        for h in failed_backgrounds:
+            if h and h not in excluded_hex:
                 excluded_hex.append(h)
 
+  
+        constraint_items = (qc.get("constraints") or {}).get("items", [])
+        for item in constraint_items:
+            if item.get("status") == "fail":
+                evidence = item.get("evidence", "")
+                import re
+                found = re.findall(r"#[0-9A-Fa-f]{6}", evidence)
+                for h in found:
+                    if h not in excluded_hex:
+                        excluded_hex.append(h)
+                        
     print(f"[Generator] Excluding {len(excluded_hex)} hex codes from previous drafts.")
 
     # 4. Retrieve heuristics BEFORE palette retrieval
