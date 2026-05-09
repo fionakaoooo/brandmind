@@ -25,13 +25,20 @@ from agent3_qc import qc_agent
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Default settings
+# ─────────────────────────────────────────────────────────────────────────────
+
+DEFAULT_MAX_ITERATIONS = 3
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Node wrappers
-# Each wrapper just calls the agent function and returns the updated state.
+# Each wrapper calls one agent function and returns the updated state.
 # LangGraph merges the returned dict back into the shared state automatically.
 # ─────────────────────────────────────────────────────────────────────────────
 
 def planner_node(state: BrandMindState) -> BrandMindState:
-    """Agent 1: classify archetype, extract constraints, initialise weights."""
+    """Agent 1: classify archetype, extract constraints, initialize weights."""
     print("\n[Graph] → planner_node")
     return planner_agent(state)
 
@@ -52,9 +59,6 @@ def qc_node(state: BrandMindState) -> BrandMindState:
 # Routing logic
 # ─────────────────────────────────────────────────────────────────────────────
 
-MAX_ITERATIONS = 3
-
-
 def route_after_qc(
     state: BrandMindState,
 ) -> Literal["generator", "__end__"]:
@@ -62,21 +66,26 @@ def route_after_qc(
     Conditional edge evaluated after every QC pass.
 
     Returns:
-        "generator"  — QC failed and we still have iterations left → revise
+        "generator"  — QC not approved and iterations remain → revise
         "__end__"    — approved OR max iterations reached → terminate
     """
     status = state.get("status", "")
     iteration = int(state.get("iteration_count", 0))
+    max_iterations = int(state.get("max_iterations", DEFAULT_MAX_ITERATIONS))
 
     if status == "approved":
         print(f"[Graph] QC approved. Terminating after {iteration} iteration(s).")
         return END
 
-    if status == "failed" or iteration >= MAX_ITERATIONS:
-        print(f"[Graph] Max iterations ({MAX_ITERATIONS}) reached. Terminating.")
+    if iteration >= max_iterations:
+        print(f"[Graph] Max iterations ({max_iterations}) reached. Terminating.")
         return END
 
-    print(f"[Graph] QC failed (iteration {iteration}). Routing back to generator.")
+    print(
+        f"[Graph] QC not approved yet "
+        f"(status={status}, iteration={iteration}/{max_iterations}). "
+        "Routing back to generator."
+    )
     return "generator"
 
 
@@ -90,11 +99,16 @@ def build_graph() -> Any:
 
     Graph structure:
         START → planner → generator → qc ─┐
-                                   ↑      │  (approved / failed → END)
-                                   └──────┘  (retry → generator)
+                                   ↑      │
+                                   └──────┘
+
+    QC routing:
+        approved                 → END
+        max iterations reached   → END
+        otherwise                → generator
 
     Returns:
-        A compiled LangGraph runnable (supports .invoke(), .stream()).
+        A compiled LangGraph runnable supporting .invoke() and .stream().
     """
     graph = StateGraph(BrandMindState)
 
@@ -106,13 +120,11 @@ def build_graph() -> Any:
     # Entry point
     graph.set_entry_point("planner")
 
-    # Planner always flows to generator
+    # Fixed edges
     graph.add_edge("planner", "generator")
-
-    # Generator always flows to QC
     graph.add_edge("generator", "qc")
 
-    # QC uses conditional edge: retry generator OR terminate
+    # Conditional QC edge
     graph.add_conditional_edges(
         "qc",
         route_after_qc,
@@ -126,19 +138,26 @@ def build_graph() -> Any:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Convenience runner (mirrors the old run_pipeline() signature)
+# Convenience runner
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_pipeline(brand_brief: str, max_iterations: int = MAX_ITERATIONS) -> Dict[str, Any]:
+def run_pipeline(
+    brand_brief: str,
+    max_iterations: int = DEFAULT_MAX_ITERATIONS,
+) -> Dict[str, Any]:
     """
-    Drop-in replacement for the hand-written run_pipeline().
+    Drop-in replacement for the old hand-written run_pipeline().
 
     Args:
-        brand_brief:     Natural language brand description.
-        max_iterations:  Upper bound on generator→QC cycles (default 3).
+        brand_brief:
+            Natural language brand description.
+
+        max_iterations:
+            Upper bound on generator → QC revision cycles.
 
     Returns:
-        Final BrandMindState dict with approved_brand_kit (or best draft).
+        Final BrandMindState dict with approved_brand_kit if approved,
+        otherwise the best available draft and QC feedback.
     """
     initial_state: BrandMindState = {
         "brand_brief": brand_brief,
@@ -154,6 +173,7 @@ def run_pipeline(brand_brief: str, max_iterations: int = MAX_ITERATIONS) -> Dict
         "qc_scores": None,
         "heuristic_weights": None,
         "iteration_count": 0,
+        "max_iterations": max_iterations,
         "status": "planning",
         "revision_history": [],
         "approved_brand_kit": None,
@@ -164,6 +184,7 @@ def run_pipeline(brand_brief: str, max_iterations: int = MAX_ITERATIONS) -> Dict
 
     status = final_state.get("status")
     iterations = final_state.get("iteration_count", 0)
+
     print(f"\n[Pipeline] Done. status={status}, iterations={iterations}")
 
     return final_state
@@ -183,12 +204,13 @@ if __name__ == "__main__":
         "No neon colors."
     )
 
-    result = run_pipeline(TEST_BRIEF)
+    result = run_pipeline(TEST_BRIEF, max_iterations=3)
 
     print("\n=== Final state keys ===")
     for k, v in result.items():
         if k == "approved_brand_kit":
-            print(f"  {k}: {json.dumps(v, indent=2, ensure_ascii=False)[:400]}...")
+            preview = json.dumps(v, indent=2, ensure_ascii=False)[:400]
+            print(f"  {k}: {preview}...")
         elif k == "heuristic_weights":
             non_default = {rid: w for rid, w in (v or {}).items() if w != 1.0}
             print(f"  {k}: {len(v or {})} rules, {len(non_default)} updated")
