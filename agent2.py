@@ -219,9 +219,9 @@ ARCHETYPE_FALLBACK_PALETTES = {
         ["#1F3528", "#3D6647", "#7A9E78", "#F5F0E0", "#6B3F20"],
     ],
     "luxury": [
-        ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
-        ["#0D0D0D", "#C9A227", "#F5F5F5", "#1A1A1A", "#E8C84A"],
-        ["#141414", "#A07C10", "#FAFAFA", "#242424", "#BF9B30"],
+    ["#1C1C1C", "#D4AF37", "#FFFFFF", "#2C2C2C", "#000000"],
+    ["#0D0D0D", "#C9A227", "#F5F5F5", "#1A1A1A", "#FFFFFF"],
+    ["#141414", "#BF9B30", "#FAFAFA", "#242424", "#000000"],
     ],
     "playful": [
         ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
