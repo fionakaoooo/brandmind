@@ -15,7 +15,7 @@ from __future__ import annotations
 import colorsys
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from openai import OpenAI
 
@@ -59,13 +59,8 @@ def _is_reddish(hex_code: str) -> bool:
 
 
 def _is_warm_or_earthy(hex_code: str) -> bool:
-    """
-    Rough HSV-based detector for warm / earthy tones.
-    Used only for lightweight repair when user explicitly says no warm/earthy.
-    """
     h, s, v = _hex_to_hsv(hex_code)
     deg = h * 360.0
-
     warm_hue = 0 <= deg <= 65
     earthy = 10 <= deg <= 55 and 0.20 <= s <= 0.75 and v <= 0.75
     return warm_hue or earthy
@@ -89,10 +84,6 @@ def _shift_red_to_amber(hex_code: str) -> str:
 
 
 def _shift_warm_to_cool(hex_code: str) -> str:
-    """
-    Shift warm/earthy colors toward blue/slate while preserving approximate
-    saturation/value. This is intentionally simple and deterministic.
-    """
     _, s, v = _hex_to_hsv(hex_code)
     h = 210.0 / 360.0
     s = min(s, 0.55)
@@ -101,13 +92,6 @@ def _shift_warm_to_cool(hex_code: str) -> str:
 
 
 def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
-    """
-    Lightweight deterministic palette repair.
-
-    This does not replace the retrieval system. It only prevents obvious
-    constraint violations like neon or red/warm colors when the user explicitly
-    requested avoiding them, including heuristic-derived constraints.
-    """
     if not hex_codes:
         return hex_codes
 
@@ -137,10 +121,8 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
             continue
         if not c.startswith("#"):
             c = "#" + c
-
         if len(c) != 7:
             continue
-
         try:
             _hex_to_hsv(c)
         except Exception:
@@ -148,10 +130,8 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
 
         if avoid_red and _is_reddish(c):
             c = _shift_red_to_amber(c)
-
         if avoid_warm_earthy and _is_warm_or_earthy(c):
             c = _shift_warm_to_cool(c)
-
         if avoid_neon and _is_neon(c):
             c = _desaturate_neon(c)
 
@@ -179,7 +159,6 @@ def _get_client() -> OpenAI:
             api_key=os.environ.get("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
-
     base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
     return OpenAI(
         api_key=os.environ.get("OPENAI_API_KEY"),
@@ -197,7 +176,7 @@ client = _get_client()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Archetype tone injection + fallback palettes
+# Archetype tone injection
 # ─────────────────────────────────────────────────────────────────────────────
 
 ARCHETYPE_TONE_LEXICON = {
@@ -214,18 +193,64 @@ ARCHETYPE_TONE_LEXICON = {
 }
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# MODIFIED: Multi-group fallback palettes (3 variants per archetype)
+# ─────────────────────────────────────────────────────────────────────────────
+
 ARCHETYPE_FALLBACK_PALETTES = {
-    "corporate": ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
-    "tech": ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
-    "minimal": ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
-    "organic": ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
-    "luxury": ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
-    "playful": ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
-    "bold": ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
-    "artisan": ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
-    "heritage": ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
-    "youthful": ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
+    "corporate": [
+        ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
+        ["#1B2A4A", "#F0F4FF", "#3A5FA0", "#E8ECF4", "#0D1B2A"],
+        ["#0F2044", "#FFFFFF", "#4A6FA5", "#EEF2F7", "#1C2D4A"],
+    ],
+    "tech": [
+        ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
+        ["#0A0E1A", "#1E2A3A", "#2E4A6A", "#4FC3F7", "#FFFFFF"],
+        ["#050D18", "#0D2137", "#1A3A5C", "#38BDF8", "#F0F9FF"],
+    ],
+    "minimal": [
+        ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
+        ["#111111", "#FAFAFA", "#E8E8E8", "#444444", "#999999"],
+        ["#0D0D0D", "#F8F8F8", "#EFEFEF", "#555555", "#AAAAAA"],
+    ],
+    "organic": [
+        ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
+        ["#2D4A3E", "#4A7C59", "#8FAF8C", "#EDE8D0", "#7A4F2E"],
+        ["#1F3528", "#3D6647", "#7A9E78", "#F5F0E0", "#6B3F20"],
+    ],
+    "luxury": [
+        ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
+        ["#0D0D0D", "#C9A227", "#F5F5F5", "#1A1A1A", "#E8C84A"],
+        ["#141414", "#A07C10", "#FAFAFA", "#242424", "#BF9B30"],
+    ],
+    "playful": [
+        ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
+        ["#FF8E8E", "#FFD93D", "#6BCFCA", "#FFFFFF", "#354A5E"],
+        ["#FF5252", "#FFCA28", "#26C6DA", "#FFFFFF", "#263238"],
+    ],
+    "bold": [
+        ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
+        ["#D62839", "#14213D", "#FFFFFF", "#3A6B8A", "#E8F4EA"],
+        ["#C1121F", "#0D1B2A", "#FFFFFF", "#2E5D7E", "#F0F7F0"],
+    ],
+    "artisan": [
+        ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
+        ["#5C3820", "#C89060", "#FDF8E0", "#BDC9A0", "#DCEAB8"],
+        ["#4A2C18", "#BC7D4D", "#FEF6E0", "#AEC090", "#D0E4A8"],
+    ],
+    "heritage": [
+        ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
+        ["#1E0F08", "#7A3A10", "#C05A18", "#EDD09E", "#F8F0E0"],
+        ["#140A04", "#6A2D0D", "#B04E14", "#E5C890", "#F5EBD8"],
+    ],
+    "youthful": [
+        ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
+        ["#FF85AD", "#D45579", "#FFCA00", "#00C8E8", "#FFFFFF"],
+        ["#FF4D8D", "#B83560", "#F0A800", "#00A0C8", "#FAFAFA"],
+    ],
 }
+
+WCAG_ANCHORS = ["#000000", "#FFFFFF"]
 
 
 def _inject_archetype_tokens(
@@ -234,11 +259,8 @@ def _inject_archetype_tokens(
     cap: int = 8,
 ) -> List[str]:
     enabled = os.environ.get("BRANDMIND_TONE_INJECTION", "1").lower() not in (
-        "0",
-        "false",
-        "no",
+        "0", "false", "no",
     )
-
     if not enabled:
         return list(existing or [])[:cap]
 
@@ -248,7 +270,6 @@ def _inject_archetype_tokens(
 
     seen: set[str] = set()
     merged: List[str] = []
-
     for token in list(canonical) + list(existing or []):
         norm = str(token).strip().lower()
         if norm and norm not in seen:
@@ -271,6 +292,7 @@ def _safe_json_loads(text: str) -> Dict[str, Any]:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 1: infer design spec
+# MODIFIED: accepts state to extract prev_hex_list for feedback injection
 # ─────────────────────────────────────────────────────────────────────────────
 
 def infer_design_spec(
@@ -279,16 +301,31 @@ def infer_design_spec(
     constraints: List[str],
     clip_context: str = "",
     qc_feedback: str = "",
+    state: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     constraint_text = "\n".join(f"- {c}" for c in constraints) if constraints else "- None"
     clip_section = f"\nVisual context: {clip_context}\n" if clip_context else ""
 
+    # Collect previously failed hex codes from revision history
+    prev_hex_list: List[str] = []
+    if state:
+        for entry in state.get("revision_history", []):
+            prev_kit = entry.get("draft_brand_kit", {})
+            prev_hex = (prev_kit.get("color_palette") or {}).get("hex_codes", [])
+            prev_hex_list.extend(prev_hex)
+        prev_hex_list = list(set(prev_hex_list))
+
+    # MODIFIED: more forceful feedback section with explicit failed hex codes
     feedback_section = (
         f"""
-REVISION MODE - You MUST address all of the following QC failures.
-Each item below is a constraint that the previous draft FAILED.
-Your output spec must directly fix every listed issue:
+REVISION MODE - The previous draft FAILED QC. You MUST produce a different output.
+
+QC failure details:
 {qc_feedback}
+
+Colors that FAILED and must NOT be reused: {prev_hex_list}
+You MUST change your primary_emotions, style_keywords, and palette_notes
+to produce a visually different result. Do not repeat the same values as before.
 """
         if qc_feedback
         else ""
@@ -399,48 +436,31 @@ def retrieve_design_heuristics(
     design_spec: Dict[str, Any],
     state: Dict[str, Any],
 ) -> List[Dict[str, Any]]:
-    """
-    Retrieve archetype-level and attribute-level heuristic rules.
-    """
     heuristics: List[Dict[str, Any]] = []
     weights = state.get("heuristic_weights")
 
-    heuristics.extend(
-        heuristic_search(
-            archetype,
-            weights=weights,
-            top_k=3,
-        )
-    )
+    heuristics.extend(heuristic_search(archetype, weights=weights, top_k=3))
 
     for attr in design_spec.get("brand_attributes", []):
-        heuristics.extend(
-            heuristic_search(
-                attr,
-                weights=weights,
-                top_k=2,
-            )
-        )
+        heuristics.extend(heuristic_search(attr, weights=weights, top_k=2))
 
-    seen_rule_ids = set()
-    deduped_heuristics: List[Dict[str, Any]] = []
-
+    seen_rule_ids: set = set()
+    deduped: List[Dict[str, Any]] = []
     for rule in heuristics:
         rid = rule.get("id")
         if rid and rid not in seen_rule_ids:
             seen_rule_ids.add(rid)
-            deduped_heuristics.append(rule)
+            deduped.append(rule)
 
-    seen_rule_texts = set()
-    final_heuristics: List[Dict[str, Any]] = []
-
-    for item in deduped_heuristics:
+    seen_rule_texts: set = set()
+    final: List[Dict[str, Any]] = []
+    for item in deduped:
         rule_text = item.get("rule", "").strip()
         if rule_text and rule_text not in seen_rule_texts:
             seen_rule_texts.add(rule_text)
-            final_heuristics.append(item)
+            final.append(item)
 
-    return final_heuristics[:8]
+    return final[:8]
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -460,13 +480,10 @@ def assemble_draft_brand_kit(
     rules = [h.get("rule") for h in heuristics if h.get("rule")]
 
     enriched_tone_keywords = _inject_archetype_tokens(
-        archetype,
-        design_spec.get("tone_keywords", []),
+        archetype, design_spec.get("tone_keywords", []),
     )
-
     enriched_brand_attrs = _inject_archetype_tokens(
-        archetype,
-        design_spec.get("brand_attributes", []),
+        archetype, design_spec.get("brand_attributes", []),
     )
 
     return {
@@ -489,8 +506,7 @@ def assemble_draft_brand_kit(
             "emotion_score": palette.get("emotion_score", 0.0),
             "emoset_alignment": palette.get("emoset_alignment", {}),
             "palette_rationale": (
-                palette.get("palette_rationale")
-                or palette_result.get("rationale")
+                palette.get("palette_rationale") or palette_result.get("rationale")
             ),
         },
         "design_rules": rules,
@@ -566,12 +582,14 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     qc_feedback = state.get("qc_feedback", "")
 
     # 1. Infer retrieval-friendly design spec
+    # MODIFIED: pass state so infer_design_spec can read revision_history
     design_spec = infer_design_spec(
         brand_brief=brand_brief,
         archetype=archetype,
         constraints=constraints,
         clip_context=clip_context,
         qc_feedback=qc_feedback,
+        state=state,
     )
 
     print(f"[Generator] Design spec industry: {design_spec.get('industry')}")
@@ -638,77 +656,46 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
         f"emotion_score={best.get('emotion_score', 0):.2f}"
     )
 
-    # 6. Fallback if retrieval quality is too low
+    # 6. MODIFIED: fallback rotates by iteration_count, filters excluded, appends WCAG anchors
     if best.get("total_score", 0) < 3.0 or (
         archetype.lower() in ARCHETYPE_FALLBACK_PALETTES
         and best.get("emotion_score", 0) == 0.0
     ):
-        fallback_hex = ARCHETYPE_FALLBACK_PALETTES.get(
+        iteration = int(state.get("iteration_count", 0))
+        candidates = ARCHETYPE_FALLBACK_PALETTES.get(
             archetype.lower(),
-            ARCHETYPE_FALLBACK_PALETTES = {
-    "corporate": [
-        ["#0A1628", "#FFFFFF", "#2E5090", "#F4F6F9", "#111111"],
-        ["#1B2A4A", "#F0F4FF", "#3A5FA0", "#E8ECF4", "#0D1B2A"],
-        ["#0F2044", "#FFFFFF", "#4A6FA5", "#EEF2F7", "#1C2D4A"],
-    ],
-    "tech": [
-        ["#0D1117", "#161B22", "#21262D", "#58A6FF", "#FFFFFF"],
-        ["#0A0E1A", "#1E2A3A", "#2E4A6A", "#4FC3F7", "#FFFFFF"],
-        ["#050D18", "#0D2137", "#1A3A5C", "#38BDF8", "#F0F9FF"],
-    ],
-    "minimal": [
-        ["#1A1A1A", "#FFFFFF", "#F5F5F5", "#333333", "#888888"],
-        ["#111111", "#FAFAFA", "#E8E8E8", "#444444", "#999999"],
-        ["#0D0D0D", "#F8F8F8", "#EFEFEF", "#555555", "#AAAAAA"],
-    ],
-    "organic": [
-        ["#3B5249", "#519872", "#A4C3A2", "#F0EAD6", "#8B5E3C"],
-        ["#2D4A3E", "#4A7C59", "#8FAF8C", "#EDE8D0", "#7A4F2E"],
-        ["#1F3528", "#3D6647", "#7A9E78", "#F5F0E0", "#6B3F20"],
-    ],
-    "luxury": [
-        ["#1C1C1C", "#B8960C", "#FFFFFF", "#2C2C2C", "#D4AF37"],
-        ["#0D0D0D", "#C9A227", "#F5F5F5", "#1A1A1A", "#E8C84A"],
-        ["#141414", "#A07C10", "#FAFAFA", "#242424", "#BF9B30"],
-    ],
-    "playful": [
-        ["#FF6B6B", "#FFE66D", "#4ECDC4", "#FFFFFF", "#2C3E50"],
-        ["#FF8E8E", "#FFD93D", "#6BCFCA", "#FFFFFF", "#354A5E"],
-        ["#FF5252", "#FFCA28", "#26C6DA", "#FFFFFF", "#263238"],
-    ],
-    "bold": [
-        ["#E63946", "#1D3557", "#FFFFFF", "#457B9D", "#F1FAEE"],
-        ["#D62839", "#14213D", "#FFFFFF", "#3A6B8A", "#E8F4EA"],
-        ["#C1121F", "#0D1B2A", "#FFFFFF", "#2E5D7E", "#F0F7F0"],
-    ],
-    "artisan": [
-        ["#6B4226", "#D4A373", "#FEFAE0", "#CCD5AE", "#E9EDC9"],
-        ["#5C3820", "#C89060", "#FDF8E0", "#BDC9A0", "#DCEAB8"],
-        ["#4A2C18", "#BC7D4D", "#FEF6E0", "#AEC090", "#D0E4A8"],
-    ],
-    "heritage": [
-        ["#2C1810", "#8B4513", "#D2691E", "#F5DEB3", "#FFFFFF"],
-        ["#1E0F08", "#7A3A10", "#C05A18", "#EDD09E", "#F8F0E0"],
-        ["#140A04", "#6A2D0D", "#B04E14", "#E5C890", "#F5EBD8"],
-    ],
-    "youthful": [
-        ["#FF6B9D", "#C44569", "#F8B500", "#00B4D8", "#FFFFFF"],
-        ["#FF85AD", "#D45579", "#FFCA00", "#00C8E8", "#FFFFFF"],
-        ["#FF4D8D", "#B83560", "#F0A800", "#00A0C8", "#FAFAFA"],
-    ],
-}
+            [["#1A1A1A", "#FFFFFF", "#2E5090", "#F4F6F9", "#4A90D9"]],
         )
+
+        # candidates is now a list of lists
+        if isinstance(candidates[0], list):
+            fallback_hex = list(candidates[iteration % len(candidates)])
+        else:
+            fallback_hex = list(candidates)
+
+        # Remove colors that were already used and failed
+        fallback_hex = [h for h in fallback_hex if h not in excluded_hex]
+        if not fallback_hex:
+            fallback_hex = list(candidates[(iteration + 1) % len(candidates)])
+
+        # Append WCAG-safe anchors to guarantee at least one high-contrast pair
+        for anchor in WCAG_ANCHORS:
+            if anchor not in fallback_hex:
+                fallback_hex.append(anchor)
 
         print(
             "[Generator] Low-quality palette detected, "
-            f"using archetype fallback: {fallback_hex}"
+            f"using archetype fallback (iteration {iteration}): {fallback_hex}"
         )
 
         palette_result["best_palette"] = {
             **best,
             "hex_codes": fallback_hex,
-            "palette_name": f"{archetype}_archetype_fallback",
-            "palette_rationale": f"Archetype-safe fallback palette for {archetype}.",
+            "palette_name": f"{archetype}_archetype_fallback_iter{iteration}",
+            "palette_rationale": (
+                f"Archetype-safe fallback palette for {archetype} "
+                f"(iteration {iteration})."
+            ),
         }
 
     # 7. Deterministic repair using user + heuristic constraints
@@ -757,7 +744,7 @@ def design_generator_agent(state: BrandMindState) -> BrandMindState:
     return state
 
 
-# Compatibility alias, in case graph.py imports generator_agent instead.
+# Compatibility alias
 generator_agent = design_generator_agent
 
 
