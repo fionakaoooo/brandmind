@@ -1,0 +1,61 @@
+{
+  "study_design": {
+    "participants": 20,
+    "brands_evaluated": 5,
+    "brands_randomly_selected_from": 20,
+    "design": "blind A/B comparison",
+    "kit_a": "BrandMind output",
+    "kit_b": "Zero-shot baseline output"
+  },
+  "participant_familiarity": {
+    "no_experience": 2,
+    "slightly_familiar": 4,
+    "moderately_familiar": 6,
+    "professional_experience": 8
+  },
+  "results_by_brand": {
+    "skincare_organic": {
+      "kit_a": 12,
+      "kit_b": 8,
+      "same": 0,
+      "avg_a": 3.6,
+      "avg_b": 2.75
+    },
+    "fintech_tech": {
+      "kit_a": 14,
+      "kit_b": 6,
+      "same": 0,
+      "avg_a": 3.65,
+      "avg_b": 2.65
+    },
+    "jewelry_luxury": {
+      "kit_a": 7,
+      "kit_b": 3,
+      "same": 10,
+      "avg_a": 3.75,
+      "avg_b": 3.15
+    },
+    "education_playful": {
+      "kit_a": 10,
+      "kit_b": 4,
+      "same": 6,
+      "avg_a": 3.7,
+      "avg_b": 2.5
+    },
+    "fitness_bold": {
+      "kit_a": 6,
+      "kit_b": 0,
+      "same": 14,
+      "avg_a": 3.8,
+      "avg_b": 3.45
+    }
+  },
+  "overall": {
+    "kit_a_preferred_pct": 49.0,
+    "kit_b_preferred_pct": 21.0,
+    "about_the_same_pct": 30.0,
+    "avg_rating_kit_a": 3.7,
+    "avg_rating_kit_b": 2.9,
+    "rating_gap": 0.8
+  }
+}
