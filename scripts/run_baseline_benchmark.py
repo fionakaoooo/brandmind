@@ -108,6 +108,202 @@ BENCHMARK_CASES: List[BenchmarkCase] = [
             "No sans",
         ],
     ),
+    BenchmarkCase(
+        case_id="case_07_heritage_whiskey",
+        brief=(
+            "Glen Morrow is a Scottish whiskey brand targeting affluent men aged 35-60. "
+            "The brand should feel classic, heritage-driven, and sophisticated. "
+            "Think old-world craftsmanship and timeless tradition. No modern or tech aesthetics."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No sans",
+            "No modern or tech aesthetics",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_08_bold_streetwear",
+        brief=(
+            "CRUX is a streetwear brand targeting urban youth aged 16-25. "
+            "The brand should feel bold, rebellious, and high-energy. "
+            "Use high contrast colors. No corporate or bland aesthetics."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "High contrast colors required",
+            "No corporate aesthetics",
+            "Avoid serif fonts",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_09_minimal_architecture",
+        brief=(
+            "Forma Studio is an architecture firm targeting premium residential clients. "
+            "The brand should feel minimal, refined, and intellectually serious. "
+            "Monochromatic palette preferred. No decorative or playful elements."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No decorative elements",
+            "Monochromatic or near-monochromatic palette",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_10_playful_pet_brand",
+        brief=(
+            "Pawsome is a pet food and accessories brand targeting millennial pet owners. "
+            "The brand should feel fun, warm, and trustworthy. "
+            "Bright friendly colors. No clinical or corporate feel."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No red",
+            "No clinical or corporate feel",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_11_corporate_consulting",
+        brief=(
+            "Meridian Advisory is a management consulting firm targeting Fortune 500 companies. "
+            "The brand should feel authoritative, intelligent, and trustworthy. "
+            "Conservative navy and gray palette. No playful or casual elements."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "Avoid serif fonts",
+            "No playful elements",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_12_youthful_edtech",
+        brief=(
+            "Spark is an online learning platform targeting college students aged 18-24. "
+            "The brand should feel energetic, modern, and approachable. "
+            "Vibrant colors welcome. Must feel inclusive and motivating."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "Avoid serif fonts",
+            "Must feel inclusive and energetic",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_13_organic_restaurant",
+        brief=(
+            "Terroir is a farm-to-table restaurant targeting food-conscious adults aged 28-50. "
+            "The brand should feel earthy, warm, and artisanal. "
+            "Muted natural tones. No synthetic or fast-food aesthetics."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No sans",
+            "Muted natural color tones only",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_14_tech_saas_platform",
+        brief=(
+            "Nexus is a B2B SaaS analytics platform targeting data teams at mid-size companies. "
+            "The brand should feel precise, modern, and data-driven. "
+            "Clean sans-serif fonts. Blues and grays preferred."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "Avoid serif fonts",
+            "Blues and grays preferred",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_15_luxury_hotel",
+        brief=(
+            "Serenova is a luxury boutique hotel brand targeting high-net-worth travelers aged 35-65. "
+            "The brand should feel serene, opulent, and timeless. "
+            "Soft neutrals and gold accents. No bright or casual colors."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No sans",
+            "No bright or casual colors",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_16_nonprofit_environment",
+        brief=(
+            "EarthKeep is an environmental nonprofit targeting donors and volunteers aged 20-50. "
+            "The brand should feel hopeful, trustworthy, and mission-driven. "
+            "Natural greens and blues. No corporate or profit-driven feel."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No red",
+            "Natural greens and blues only",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_17_wellness_app",
+        brief=(
+            "Calm Grove is a mental wellness and meditation app targeting stressed "
+            "professionals aged 25-45. The brand should feel calming, safe, and nurturing. "
+            "Soft muted tones only. No bold or aggressive aesthetics."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No red",
+            "Soft muted tones only",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_18_sustainable_fashion",
+        brief=(
+            "Thread & Earth is a sustainable fashion brand targeting eco-conscious "
+            "millennials aged 22-35. The brand should feel ethical, modern, and aspirational. "
+            "Earthy tones with a contemporary edge. No fast-fashion aesthetics."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No red",
+            "Earthy tones required",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_19_gaming_esports",
+        brief=(
+            "VoltX is an esports and gaming brand targeting competitive gamers aged 16-28. "
+            "The brand should feel intense, futuristic, and electrifying. "
+            "High contrast dark palette with neon accents welcome. Bold display fonts preferred."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "High contrast palette required",
+            "Avoid serif fonts",
+            "Dark background palette preferred",
+        ],
+    ),
+    BenchmarkCase(
+        case_id="case_20_premium_coffee",
+        brief=(
+            "Roast & Reserve is a premium single-origin coffee brand targeting "
+            "specialty coffee enthusiasts aged 25-50. The brand should feel artisanal, "
+            "warm, and intellectually curious. Rich earth tones. No corporate or mass-market feel."
+        ),
+        constraints=[
+            "WCAG AA accessible palette",
+            "Avoid neon colors",
+            "No sans",
+            "Rich earth tones required",
+        ],
+    ),
 ]
 
 
@@ -614,7 +810,6 @@ def main() -> int:
         type=str,
         default="min-pairs",
         choices=["legacy", "min-pairs"],
-        help="min-pairs (default): pass when >= --wcag-min-pairs pairs hit AA. legacy: original 'all 20 pairs pass AA' (mathematically infeasible for 5-color palettes; kept for reproducibility).",
     )
     parser.add_argument("--wcag-min-pairs", type=int, default=2)
     parser.add_argument(
@@ -622,7 +817,6 @@ def main() -> int:
         type=str,
         default="rubric",
         choices=["legacy", "rubric"],
-        help="rubric (default): 4-axis rubric judge with anchors. legacy: original 1-line judge prompt (compresses scores near the ceiling; kept for reproducibility).",
     )
     args = parser.parse_args()
 
