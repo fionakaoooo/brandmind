@@ -194,6 +194,10 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
             deduped.append(c)
     constraints = deduped
 
+    # prioritize constraints — accessibility first
+    constraints = prioritize_constraints(constraints)
+
+
     for f in forced:
         if _norm(f) not in {_norm(c) for c in constraints}:
             constraints.insert(0, f)
