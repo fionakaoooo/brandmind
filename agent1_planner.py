@@ -1,4 +1,3 @@
-
 """
 Agent 1: Planner Agent
 - Receives brand brief (+ optional CLIP features)
@@ -29,8 +28,12 @@ def _get_client() -> OpenAI:
             api_key=os.environ.get("GROQ_API_KEY"),
             base_url="https://api.groq.com/openai/v1",
         )
+
     base_url = os.environ.get("OPENAI_BASE_URL", "").strip() or None
-    return OpenAI(api_key=os.environ.get("OPENAI_API_KEY"), base_url=base_url)
+    return OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),
+        base_url=base_url,
+    )
 
 
 def _get_model() -> str:
@@ -40,6 +43,7 @@ def _get_model() -> str:
 
 
 client = _get_client()
+
 
 # ── Tool: archetype_classifier ──────────────────────────────────────────────
 
@@ -59,6 +63,7 @@ Archetypes:
 Brand brief:
 {brand_brief}
 {clip_section}
+
 Respond ONLY with valid JSON in this exact format:
 {{
   "archetype": "<one of the 10 archetypes above>",
@@ -67,6 +72,7 @@ Respond ONLY with valid JSON in this exact format:
   "secondary_archetype": "<second best archetype if confidence is low or medium>"
 }}
 """
+
     resp = client.chat.completions.create(
         model=_get_model(),
         messages=[{"role": "user", "content": prompt}],
@@ -87,16 +93,34 @@ Respond ONLY with valid JSON in this exact format:
     return result
 
 
+# ── Constraint prioritizer ───────────────────────────────────────────────────
+
+def prioritize_constraints(constraints: list) -> list:
+    priority_keywords = [
+        "wcag",
+        "accessible",
+        "accessibility",
+        "colorblind",
+        "contrast",
+    ]
+
+    high_priority = []
+    normal_priority = []
+
+    for constraint in constraints:
+        c_lower = constraint.lower()
+        if any(keyword in c_lower for keyword in priority_keywords):
+            high_priority.append(constraint)
+        else:
+            normal_priority.append(constraint)
+
+    return high_priority + normal_priority
+
+
 # ── Constraint extractor ─────────────────────────────────────────────────────
 
 def extract_constraints(brand_brief: str, archetype: str) -> list:
-    prompt = f"""You are a brand design expert. Given the brand brief and its archetype, 
-extract all design constraints — both explicit (directly stated) and implicit (reasonably implied).
-
-Brand archetype: {archetype}
-Brand brief: {brand_brief}
-
-# detect industry from brief for downstream agents
+    # detect industry from brief for downstream agents
     industry_keywords = {
         "skincare": ["skincare", "skin", "beauty", "cosmetic"],
         "fintech": ["fintech", "finance", "banking", "payment", "invoice"],
@@ -108,32 +132,42 @@ Brand brief: {brand_brief}
         "education": ["education", "learning", "school", "student"],
         "nonprofit": ["nonprofit", "charity", "foundation", "cause"],
     }
+
     detected_industry = "general"
     brief_lower = brand_brief.lower()
+
     for industry, keywords in industry_keywords.items():
         if any(k in brief_lower for k in keywords):
             detected_industry = industry
             break
+
     print(f"[Planner] Detected industry: {detected_industry}")
 
+    prompt = f"""You are a brand design expert. Given the brand brief and its archetype, 
+extract all design constraints — both explicit directly stated constraints and implicit reasonably implied constraints.
+
+Brand archetype: {archetype}
+Detected industry: {detected_industry}
+Brand brief: {brand_brief}
+
 Constraints to look for include:
-- Accessibility requirements (e.g., WCAG compliance, colorblind-friendly)
-- Audience-driven tone requirements (e.g., "approachable for children" → avoid harsh fonts)
+- Accessibility requirements, such as WCAG compliance or colorblind-friendly palettes
+- Audience-driven tone requirements, such as "approachable for children" meaning avoid harsh fonts
 - Cultural or regional considerations
 - Industry conventions that must be respected
-- Explicit style restrictions (e.g., "no serif fonts", "must feel minimal")
-- Color restrictions (e.g., "no red", "must use brand color #2E86AB")
+- Explicit style restrictions, such as "no serif fonts" or "must feel minimal"
+- Color restrictions, such as "no red" or "must use brand color #2E86AB"
 
 Respond ONLY with valid JSON:
 {{
   "constraints": [
     "constraint 1 as a clear, actionable string",
-    "constraint 2",
-    ...
+    "constraint 2"
   ]
 }}
 
-If no constraints are found, return {{"constraints": []}}."""
+If no constraints are found, return {{"constraints": []}}.
+"""
 
     resp = client.chat.completions.create(
         model=_get_model(),
@@ -146,24 +180,32 @@ If no constraints are found, return {{"constraints": []}}."""
     return result.get("constraints", [])
 
 
-# ── Planner Agent Node ────────────────────────────────────────────────────────
+# ── Planner Agent Node ───────────────────────────────────────────────────────
 
 def planner_agent(state: BrandMindState) -> BrandMindState:
     print("\n[Planner] Starting brand archetype classification...")
 
     brand_brief = state["brand_brief"]
-	# warn if brief is too short to extract meaningful constraints
+
+    # warn if brief is too short to extract meaningful constraints
     if len(brand_brief.split()) < 20:
-        print("[Planner] Warning: brand brief is short (<20 words). Constraint extraction may be limited.")
+        print(
+            "[Planner] Warning: brand brief is short (<20 words). "
+            "Constraint extraction may be limited."
+        )
 
     clip_context = ""
     if state.get("clip_features"):
-        clip_context = "Visual brand assets were uploaded (logo/mood board). Incorporate visual tone."
+        clip_context = (
+            "Visual brand assets were uploaded (logo/mood board). "
+            "Incorporate visual tone."
+        )
 
     # step 1: classify archetype
     archetype_result = archetype_classifier(brand_brief, clip_context)
     archetype = archetype_result["archetype"]
     rationale = archetype_result["rationale"]
+
     print(f"[Planner] Archetype: {archetype}")
     print(f"[Planner] Rationale: {rationale}")
 
@@ -173,6 +215,7 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     # step 3: force-inject literal constraints from brief
     brief_lower = brand_brief.lower()
     forced = []
+
     if "wcag" in brief_lower or "accessible" in brief_lower:
         forced.append("Color palette must be WCAG AA accessible")
     if "no neon" in brief_lower:
@@ -184,20 +227,22 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     if "no traditional bank" in brief_lower:
         forced.append("No traditional bank vibes")
 
-    def _norm(s):
+    def _norm(s: str) -> str:
         return s.strip().rstrip(".,;").lower()
 
     seen = set()
     deduped = []
+
     for c in constraints:
-        if _norm(c) not in seen:
-            seen.add(_norm(c))
+        normalized = _norm(c)
+        if normalized not in seen:
+            seen.add(normalized)
             deduped.append(c)
+
     constraints = deduped
 
     # prioritize constraints — accessibility first
     constraints = prioritize_constraints(constraints)
-
 
     for f in forced:
         if _norm(f) not in {_norm(c) for c in constraints}:
@@ -206,8 +251,26 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print(f"[Planner] Extracted {len(constraints)} constraints:")
     for c in constraints:
         print(f"  • {c}")
-	print(f"[Planner] Constraint types: {len([c for c in constraints if any(k in c.lower() for k in ['wcag', 'accessible'])])} accessibility, {len([c for c in constraints if any(k in c.lower() for k in ['no ', 'avoid'])])} restrictions")
 
+    accessibility_count = len(
+        [
+            c for c in constraints
+            if any(k in c.lower() for k in ["wcag", "accessible"])
+        ]
+    )
+
+    restriction_count = len(
+        [
+            c for c in constraints
+            if any(k in c.lower() for k in ["no ", "avoid"])
+        ]
+    )
+
+    print(
+        f"[Planner] Constraint types: "
+        f"{accessibility_count} accessibility, "
+        f"{restriction_count} restrictions"
+    )
 
     state = initialise_weights(state)
 
