@@ -1,22 +1,17 @@
 {
   "drop_A": {
-    "csr": 0.944,
-    "wcag": 0.833,
-    "coherence": 4.333
+    "csr": 0.73,
+    "wcag": 0.95,
+    "coherence": 4.26
   },
   "drop_B": {
-    "csr": 0.944,
-    "wcag": 0.833,
-    "coherence": 4.433
-  },
-  "drop_D": {
-    "csr": 0.944,
-    "wcag": 0.833,
-    "coherence": 4.2
-  },
-  "drop_E": {
-    "csr": 1.0,
+    "csr": 0.73,
     "wcag": 1.0,
-    "coherence": 4.467
+    "coherence": 4.415
+  },
+  "drop_C": {
+    "csr": 0.703,
+    "wcag": 0.95,
+    "coherence": 4.305
   }
 }
