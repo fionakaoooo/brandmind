@@ -1,0 +1,12 @@
+=== Failure Analysis ===
+Total cases: 20
+Approved: 0
+Failed (max iterations): 20
+
+Cases meeting CSR >= 0.80: 2/20
+Cases meeting Coherence >= 4.0: 19/20
+Cases meeting WCAG: 19/20
+
+Avg CSR: 0.579
+Avg Coherence: 4.320
+WCAG pass rate: 0.950
