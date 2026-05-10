@@ -66,6 +66,7 @@ Respond ONLY with valid JSON in this exact format:
   "confidence": "<high|medium|low>",
   "secondary_archetype": "<second best archetype if confidence is low or medium>"
 }}
+"""
     resp = client.chat.completions.create(
         model=_get_model(),
         messages=[{"role": "user", "content": prompt}],
@@ -94,9 +95,8 @@ extract all design constraints — both explicit (directly stated) and implicit 
 
 Brand archetype: {archetype}
 Brand brief: {brand_brief}
-"""
 
-	# detect industry from brief for downstream agents
+# detect industry from brief for downstream agents
     industry_keywords = {
         "skincare": ["skincare", "skin", "beauty", "cosmetic"],
         "fintech": ["fintech", "finance", "banking", "payment", "invoice"],
