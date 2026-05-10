@@ -1,0 +1,62 @@
+{
+  "Corporate": {
+    "cases": 2,
+    "avg_csr": 0.583,
+    "avg_coherence": 4.3,
+    "wcag_pass_rate": 1.0
+  },
+  "Playful": {
+    "cases": 2,
+    "avg_csr": 0.583,
+    "avg_coherence": 4.4,
+    "wcag_pass_rate": 1.0
+  },
+  "Luxury": {
+    "cases": 2,
+    "avg_csr": 0.292,
+    "avg_coherence": 4.4,
+    "wcag_pass_rate": 1.0
+  },
+  "Organic": {
+    "cases": 4,
+    "avg_csr": 0.542,
+    "avg_coherence": 4.3,
+    "wcag_pass_rate": 1.0
+  },
+  "Tech": {
+    "cases": 2,
+    "avg_csr": 0.75,
+    "avg_coherence": 4.1,
+    "wcag_pass_rate": 1.0
+  },
+  "Artisan": {
+    "cases": 3,
+    "avg_csr": 0.75,
+    "avg_coherence": 4.3,
+    "wcag_pass_rate": 1.0
+  },
+  "Heritage": {
+    "cases": 1,
+    "avg_csr": 0.5,
+    "avg_coherence": 4.3,
+    "wcag_pass_rate": 1.0
+  },
+  "Bold": {
+    "cases": 2,
+    "avg_csr": 0.75,
+    "avg_coherence": 4.4,
+    "wcag_pass_rate": 1.0
+  },
+  "Minimal": {
+    "cases": 1,
+    "avg_csr": 0.25,
+    "avg_coherence": 4.3,
+    "wcag_pass_rate": 0.0
+  },
+  "Youthful": {
+    "cases": 1,
+    "avg_csr": 0.5,
+    "avg_coherence": 4.5,
+    "wcag_pass_rate": 1.0
+  }
+}
