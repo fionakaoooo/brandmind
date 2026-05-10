@@ -77,6 +77,25 @@ ATTRIBUTE_ALIASES: Dict[str, str] = {
     "warmth": "warm",
     "inviting": "friendly",
     "welcoming": "friendly",
+
+    "trust":                "trustworthy",
+    "precision":            "precise",
+    "modernity":            "modern",
+    "high-energy":          "energetic",
+    "high_energy":          "energetic",
+    "rebellious":           "bold",
+    "fearless":             "bold",
+    "expressive":           "bold",
+    "artisanal":            "artisan",
+    "community-focused":    "neighborly",
+    "community_focused":    "neighborly",
+    "nostalgic":            "heritage",
+    "sophistication":       "sophisticated",
+    "pure":                 "clean",
+    "engaging":             "playful",
+    "accessible":           "clean",
+    "reliable":             "trustworthy",
+    "dynamic":              "energetic",
 }
 
 
@@ -370,8 +389,19 @@ def _normalize_attribute(value: str) -> str:
     attr = attr.replace("-", "_").replace(" ", "_")
     attr = attr.replace("&", "and")
     attr = attr.strip("_")
-    return ATTRIBUTE_ALIASES.get(attr, attr)
+    if attr in ATTRIBUTE_ALIASES:
+        return ATTRIBUTE_ALIASES[attr]
 
+    for alias_key, alias_val in ATTRIBUTE_ALIASES.items():
+        if attr.startswith(alias_key) or alias_key.startswith(attr):
+            if len(attr) >= 4:   # 防止短词误匹配
+                return alias_val
+
+    # 直接命中 rule bank
+    if attr in _RULE_BANK:
+        return attr
+
+    return attr
 
 def _default_weights() -> Dict[str, float]:
     """
