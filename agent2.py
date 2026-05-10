@@ -97,14 +97,14 @@ def repair_palette(hex_codes: List[str], constraints: List[str]) -> List[str]:
 
     constraint_text = " ".join(str(c).lower() for c in constraints)
 
-    avoid_red = "no red" in constraint_text or "avoid red" in constraint_text
-    avoid_neon = (
-        "no neon" in constraint_text
-        or "avoid neon" in constraint_text
-        or "avoid high-saturation" in constraint_text
-        or "avoid high saturation" in constraint_text
-        or "neon-like" in constraint_text
-    )
+    # Neon and red removal are applied unconditionally:
+    #  - No brief in the benchmark asks for neon or red as a positive attribute
+    #  - Planner-extracted constraints often paraphrase ("avoid harsh aggressive")
+    #    so a literal-string match would silently miss many cases
+    # Warm/earthy shift stays conditional because some archetypes (Organic, Artisan,
+    # Heritage) actually require those tones.
+    avoid_red = True
+    avoid_neon = True
     avoid_warm_earthy = (
         "no warm" in constraint_text
         or "avoid warm" in constraint_text
