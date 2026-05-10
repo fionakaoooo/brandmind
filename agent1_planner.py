@@ -95,6 +95,26 @@ extract all design constraints — both explicit (directly stated) and implicit 
 Brand archetype: {archetype}
 Brand brief: {brand_brief}
 
+# detect industry from brief for downstream agents
+    industry_keywords = {
+        "skincare": ["skincare", "skin", "beauty", "cosmetic"],
+        "fintech": ["fintech", "finance", "banking", "payment", "invoice"],
+        "fashion": ["fashion", "clothing", "apparel", "wear"],
+        "food": ["restaurant", "food", "bakery", "cafe", "coffee"],
+        "tech": ["saas", "platform", "software", "app", "tech"],
+        "jewelry": ["jewelry", "jewellery", "gem", "diamond"],
+        "fitness": ["fitness", "gym", "sport", "athlete", "workout"],
+        "education": ["education", "learning", "school", "student"],
+        "nonprofit": ["nonprofit", "charity", "foundation", "cause"],
+    }
+    detected_industry = "general"
+    brief_lower = brand_brief.lower()
+    for industry, keywords in industry_keywords.items():
+        if any(k in brief_lower for k in keywords):
+            detected_industry = industry
+            break
+    print(f"[Planner] Detected industry: {detected_industry}")
+
 Constraints to look for include:
 - Accessibility requirements (e.g., WCAG compliance, colorblind-friendly)
 - Audience-driven tone requirements (e.g., "approachable for children" → avoid harsh fonts)
