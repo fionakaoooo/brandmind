@@ -38,8 +38,31 @@ EMOSET_BRAND_EMOTION_MAP = {
     "friendly": ["amusement", "contentment"],
     "joyful": ["amusement", "excitement"],
     "grounded": ["contentment"],
+    "precise":       ["awe"],
+    "reliable":      ["contentment"],
+    "innovative":    ["awe", "excitement"],
+    "efficient":     ["contentment"],
+    "secure":        ["contentment"],
+    "professional":  ["contentment"],
+    "authoritative": ["awe"],
+    "contemporary":  ["awe"],
+    "soothing":      ["contentment"],
+    "nurturing":     ["contentment", "amusement"],
+    "natural":       ["contentment"],
+    "timeless":      ["awe", "contentment"],
+    "exclusive":     ["awe"],
+    "curious":       ["amusement", "excitement"],
+    "imaginative":   ["amusement", "excitement"],
+    "approachable":  ["amusement", "contentment"],
+    "dynamic":       ["excitement"],
+    "authentic":     ["contentment"],
+    "craft_driven":  ["contentment", "awe"],
+    "nostalgic":     ["contentment", "awe"],
+    "handmade":      ["contentment"],
+    "rebellious":    ["excitement", "anger"],
+    "technical":     ["awe"],
+    "cutting_edge":  ["awe", "excitement"],
 }
-
 
 def _normalize_col(name: str) -> str:
     return (
