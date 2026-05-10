@@ -89,8 +89,8 @@ Respond ONLY with valid JSON in this exact format:
 # ── Constraint extractor ─────────────────────────────────────────────────────
 
 def extract_constraints(brand_brief: str, archetype: str) -> list:
-    prompt = """You are a brand design expert. Given the brand brief and its archetype, 
-extract all design constraints — both explicit (directly stated) and implicit (reasonably implied)."""
+    prompt = f"""You are a brand design expert. Given the brand brief and its archetype, 
+extract all design constraints — both explicit (directly stated) and implicit (reasonably implied).
 
 Brand archetype: {archetype}
 Brand brief: {brand_brief}
