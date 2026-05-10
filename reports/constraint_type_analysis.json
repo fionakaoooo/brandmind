@@ -1,0 +1,10 @@
+{
+  "total": 74,
+  "by_type": {
+    "accessibility": 20,
+    "color_restriction": 24,
+    "font_restriction": 13,
+    "tone": 3,
+    "other": 14
+  }
+}
