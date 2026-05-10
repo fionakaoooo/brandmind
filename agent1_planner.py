@@ -131,6 +131,9 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print("\n[Planner] Starting brand archetype classification...")
 
     brand_brief = state["brand_brief"]
+	# warn if brief is too short to extract meaningful constraints
+    if len(brand_brief.split()) < 20:
+        print("[Planner] Warning: brand brief is short (<20 words). Constraint extraction may be limited.")
 
     clip_context = ""
     if state.get("clip_features"):
