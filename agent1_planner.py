@@ -178,6 +178,8 @@ def planner_agent(state: BrandMindState) -> BrandMindState:
     print(f"[Planner] Extracted {len(constraints)} constraints:")
     for c in constraints:
         print(f"  • {c}")
+	print(f"[Planner] Constraint types: {len([c for c in constraints if any(k in c.lower() for k in ['wcag', 'accessible'])])} accessibility, {len([c for c in constraints if any(k in c.lower() for k in ['no ', 'avoid'])])} restrictions")
+
 
     state = initialise_weights(state)
 
