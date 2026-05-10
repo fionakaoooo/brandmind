@@ -62,9 +62,10 @@ Brand brief:
 Respond ONLY with valid JSON in this exact format:
 {{
   "archetype": "<one of the 10 archetypes above>",
-  "rationale": "<1-2 sentences explaining why this archetype fits best>"
-}}"""
-
+  "rationale": "<1-2 sentences explaining why this archetype fits best>",
+  "confidence": "<high|medium|low>",
+  "secondary_archetype": "<second best archetype if confidence is low or medium>"
+}}
     resp = client.chat.completions.create(
         model=_get_model(),
         messages=[{"role": "user", "content": prompt}],
