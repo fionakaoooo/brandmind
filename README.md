@@ -43,7 +43,7 @@ Brand Brief (text + optional image)
 brandmind/
 ├── state.py                  # shared LangGraph state schema — do not edit alone
 ├── agent1_planner.py         # Planner Agent (Fiona)
-├── agent2_generator.py       # Design Generator Agent (Sylvia)
+├── agent2.py                 # Design Generator Agent (Sylvia)
 ├── agent3_qc.py              # QC Agent (Helen)
 ├── graph.py                  # full LangGraph pipeline (assembled together)
 ├── app.py                    # Streamlit frontend
@@ -78,17 +78,17 @@ cp .env.example .env
 # fill in your keys
 ```
 
-`.env.example`:
-```
-OPENAI_API_KEY=your-key-here
-GOOGLE_FONTS_KEY=your-key-here   # optional, falls back to curated list
-```
+See `.env.example` in the repo for the full template. The required keys are
+`OPENAI_API_KEY` (or `GROQ_API_KEY`), `GOOGLE_FONTS_API_KEY`, and the lever
+toggles `BRANDMIND_FONT_WHITELIST` / `BRANDMIND_TONE_INJECTION` /
+`BRANDMIND_NARRATIVE` (all default on). `LLM_PROVIDER=openai` selects OpenAI
+direct; comment it out to auto-route to Groq when `GROQ_API_KEY` is set.
 
 ### 3. run individual agents (for development)
 
 ```bash
 python agent1_planner.py
-python agent2_generator.py
+python agent2.py
 python agent3_qc.py
 ```
 
@@ -126,7 +126,7 @@ Upload `emotion_labeled_palettes.csv` to the Colab session, or mount Google Driv
 | Agent | File | Owner | Description |
 |---|---|---|---|
 | Planner | `agent1_planner.py` | Fiona | Classifies brand archetype, extracts design constraints |
-| Generator | `agent2_generator.py` | Sylvia | Retrieves fonts + colors + rules, assembles draft brand kit |
+| Generator | `agent2.py` | Sylvia | Retrieves fonts + colors + rules, assembles draft brand kit |
 | QC | `agent3_qc.py` | Helen | Checks WCAG contrast, archetype coherence, constraint satisfaction |
 
 ---
