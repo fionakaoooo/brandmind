@@ -96,7 +96,7 @@ Brand archetype: {archetype}
 Brand brief: {brand_brief}
 """
 
-# detect industry from brief for downstream agents
+	# detect industry from brief for downstream agents
     industry_keywords = {
         "skincare": ["skincare", "skin", "beauty", "cosmetic"],
         "fintech": ["fintech", "finance", "banking", "payment", "invoice"],
