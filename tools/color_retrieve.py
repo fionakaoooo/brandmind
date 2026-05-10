@@ -316,9 +316,7 @@ def _constraint_penalty(
         or "limited color palette" in constraint_text
         or "clearly assigned functional roles" in constraint_text
         or "minimal" in constraint_text
-        or "precision" in constraint_text
     )
-
     playful_or_kids = (
         "playful" in constraint_text
         or "children" in constraint_text
