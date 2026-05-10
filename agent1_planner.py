@@ -94,6 +94,7 @@ extract all design constraints — both explicit (directly stated) and implicit 
 
 Brand archetype: {archetype}
 Brand brief: {brand_brief}
+"""
 
 # detect industry from brief for downstream agents
     industry_keywords = {
