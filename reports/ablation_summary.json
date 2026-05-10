@@ -1,0 +1,22 @@
+{
+  "drop_A": {
+    "csr": 0.944,
+    "wcag": 0.833,
+    "coherence": 4.333
+  },
+  "drop_B": {
+    "csr": 0.944,
+    "wcag": 0.833,
+    "coherence": 4.433
+  },
+  "drop_D": {
+    "csr": 0.944,
+    "wcag": 0.833,
+    "coherence": 4.2
+  },
+  "drop_E": {
+    "csr": 1.0,
+    "wcag": 1.0,
+    "coherence": 4.467
+  }
+}
