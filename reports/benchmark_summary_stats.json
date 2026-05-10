@@ -1,0 +1,42 @@
+{
+  "brandmind_full": {
+    "cases": 20,
+    "csr_mean": 0.579,
+    "csr_min": 0.25,
+    "csr_max": 1.0,
+    "coherence_mean": 4.32,
+    "coherence_min": 3.9,
+    "coherence_max": 4.5,
+    "wcag_pass_rate": 0.95
+  },
+  "baseline_zero_shot_gpt4o": {
+    "cases": 20,
+    "csr_mean": 0.642,
+    "csr_min": 0.25,
+    "csr_max": 1.0,
+    "coherence_mean": 4.391,
+    "coherence_min": 4.3,
+    "coherence_max": 4.625,
+    "wcag_pass_rate": 0.6
+  },
+  "baseline_rag_only": {
+    "cases": 20,
+    "csr_mean": 0.675,
+    "csr_min": 0.25,
+    "csr_max": 1.0,
+    "coherence_mean": 3.895,
+    "coherence_min": 2.8,
+    "coherence_max": 4.3,
+    "wcag_pass_rate": 0.75
+  },
+  "baseline_fontjoy": {
+    "cases": 20,
+    "csr_mean": 0.096,
+    "csr_min": 0.0,
+    "csr_max": 0.333,
+    "coherence_mean": 2.415,
+    "coherence_min": 2.2,
+    "coherence_max": 2.5,
+    "wcag_pass_rate": 0.0
+  }
+}
